@@ -1,0 +1,168 @@
+'''
+Created on Sep 29, 2014
+
+@author: chenxh
+'''
+#encoding=utf-8
+import os,numpy,theano,cPickle
+import theano.tensor as T
+from theano.tensor.shared_randomstreams import RandomStreams
+from rbm import *
+from preprocess_data import *
+class DBN(object):
+    def __init__(self,theano_rng=None,n_ins=1000,
+                 hidden_layers_sizes=[594,594,594],n_outs=40):
+        self.n_ins = n_ins
+        self.n_outs = n_outs
+        self.sigmoid_layers = []
+        self.rbm_layers = []
+        self.params = []
+        self.hidden_layers_sizes =hidden_layers_sizes
+        self.n_layers = len(hidden_layers_sizes)
+        assert self.n_layers > 0
+        numpy_rng = numpy.random.RandomState(123)
+        if not theano_rng:
+            theano_rng = RandomStreams(numpy_rng.randint(2**30))
+        self.x = T.matrix('x')
+        self.y = T.ivector('y')
+        for i in xrange(self.n_layers):
+            if i==0:
+                input_size = n_ins
+                layer_input = self.x
+            else:
+                input_size = hidden_layers_sizes[i-1]
+                layer_input = self.sigmoid_layers[-1].output
+            # get W and b
+            sigmoid_layer = HiddenLayer(rng=numpy_rng,input=layer_input,
+                                        n_in=input_size,
+                                        n_out=hidden_layers_sizes[i],
+                                        activation=T.nnet.sigmoid)
+            self.sigmoid_layers.append(sigmoid_layer)
+            self.params.extend(sigmoid_layer.params)
+            
+            rbm_layer = RBM(numpy_rng=numpy_rng,theano_rng=theano_rng,
+                            input=layer_input,
+                            n_visible=input_size,
+                            n_hidden=hidden_layers_sizes[i],
+                            W=sigmoid_layer.W,
+                            hbias=sigmoid_layer.b)
+            self.rbm_layers.append(rbm_layer)
+        self.getLayerOutput = self.sigmoid_layers[-1].Output()
+        
+        self.logLayer = LogisticRegression(self.sigmoid_layers[-1].output,
+                                           n_in=self.hidden_layers_sizes[-1],n_out=self.n_outs)
+        self.params.extend(self.logLayer.params)
+        self.finetune_cost = self.logLayer.negative_log_likelihood(self.y)
+        self.errors = self.logLayer.errors(self.y)
+        self.label = self.logLayer.getLabel(self.y)
+        self.feature = self.logLayer.getFeature()
+        
+    
+    def pretraining_function(self,train_set_x,batch_size,k):
+        
+        index = T.lscalar('index')
+        learning_rate = T.scalar('lr')
+        
+        n_batches = train_set_x.get_value(borrow=True).shape[0]/batch_size
+        batch_begin = index*batch_size
+        batch_end = batch_begin + batch_size
+        
+        pretrain_fns = []
+        for rbm in self.rbm_layers:
+            cost,updates = rbm.get_cost_updates(learning_rate,persistent=None,k=k)
+            fn = theano.function(inputs=[index,theano.Param(learning_rate,default=0.1)],
+                                 outputs = cost,
+                                 updates = updates,
+                                 givens = {self.x:train_set_x[batch_begin:batch_end]})
+            pretrain_fns.append(fn)
+        getLayers = theano.function([index], self.getLayerOutput,
+                   givens={self.x: train_set_x[index :]})
+        
+        def Layers():
+            return getLayers(0)
+        return pretrain_fns, Layers
+    def build_finetune_functions(self,datasets,batch_size,learning_rate):
+        
+       
+        (train_set_x,train_set_y) = datasets[0]
+        (test_set_x,test_set_y) = datasets[1]
+        
+        n_test_batches = test_set_x.get_value(borrow=True).shape[0]/batch_size
+        index = T.lscalar('index')
+        gparams = T.grad(self.finetune_cost,self.params)
+        updates = []
+        for param,gparam in zip(self.params,gparams):
+            updates.append((param,param-gparam*learning_rate))
+        train_fn = theano.function([index],
+                                   outputs=self.finetune_cost,
+                                   updates=updates,
+                                   givens={self.x: train_set_x[index * batch_size:(index + 1) * batch_size],
+                                           self.y: train_set_y[index * batch_size:(index + 1) * batch_size]})
+
+        test_score_i = theano.function([index],self.errors,
+                                       givens={self.x:test_set_x[index*batch_size:(index+1)*batch_size],
+                                               self.y:test_set_y[index*batch_size:(index+1)*batch_size]})
+        getlabel = theano.function([index],self.label,
+                                   givens={self.x:test_set_x[index:],
+                                           self.y:test_set_y[index:]})
+        getfeature = theano.function([index],self.feature,
+                                    givens={self.x:test_set_x[index:]})
+        getLayers = theano.function([index], self.getLayerOutput,
+                   givens={self.x: test_set_x[index :]})
+        
+        def Layers():
+            return getLayers(0)
+        def Features():
+            return getfeature(0)
+        def test_score():
+            return [test_score_i(i) for i in xrange(n_test_batches)]
+        def get_test_label():
+            return getlabel(0)
+        return train_fn,test_score,get_test_label, Features, Layers
+    
+    def getParams(self,input):
+        index = T.lscalar('index')
+        getLayers = theano.function([index], self.getLayerOutput,
+                   givens={self.x: input[index :]})
+        
+        def Layers():
+            return getLayers(0)
+        return Layers,self.sigmoid_layers[-1].output, self.params
+#         return self.sigmoid_layers, self.params
+
+    def save_params(self, fileName):
+        save_file = open(fileName, 'wb')  # this will overwrite current contents
+        print len(self.params),self.params
+        for i in xrange(len(self.params)):
+            if (i%2 ==0):
+                W = self.params[i]
+                cPickle.dump(W.get_value(borrow=True), save_file, -1)  # the -1 is for HIGHEST_PROTOCOL
+            else:
+                b = self.params[i]
+                cPickle.dump(b.get_value(borrow=True), save_file, -1)  # the -1 is for HIGHEST_PROTOCOL
+        save_file.close()
+        
+# from minisom import MiniSom
+# som = MiniSom(6,6,4,sigma=0.3,learning_rate=0.05)
+# data = [[ 5.1,3.5,1.4, 0.2],
+#         [ 4.9,3,1.4 ,0.2],
+#         [ 4.7,  3.2 , 1.3 , 0.2],
+#         [ 4.6 , 3.1 , 1.5  ,0.2],
+#         [ 5,  3.6 , 1.4 , 0.2],
+#         [ 4.1,  3.3 , 1.4,  0.2],
+#         [ 4.2 , 3.2,  1.2,  0.2]]  
+# print "Training...",shape(data)
+# 
+# som.train_random(data,100) # trains the SOM with 100 iterations
+# for i,x in enumerate(data):
+#     print som.winner(x)
+# print "...ready!"
+# qnt = som.quantization(data)
+# print qnt,shape(qnt)
+# print som.winner([ 4.6 , 3.1 , 1.5  ,0.2]),som.winner([ 4.5 , 3.1 , 1.5  ,0.2])
+
+            
+            
+            
+            
+                   
