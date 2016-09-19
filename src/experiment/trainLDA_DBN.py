@@ -9,7 +9,7 @@ import theano.tensor as T
 from src.preprocess.preprocess_data import *
 from src.model.dualDBN import *
 from evaluation import *
-from svmutil import *
+from src.model.svmutil import *
 from sklearn.naive_bayes import GaussianNB
 from sklearn.linear_model import LogisticRegression as LR, Perceptron
 from sklearn import tree
@@ -18,11 +18,12 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=200,
               pretrain_lr=0.01,k=1,training_epochs=200,batch_size=10,dataIndex=0):
     
     start_time = time.clock()
-    filepath = "../../dataset/features/zzcxhg_feature_2014-11-16"
+    # filepath = "../../dataset/features/zzcxhg_feature_2014-11-16"
+    filepath = "../../dataset/features/mixed_2015-03-25"
     saveFile = file("../../output/result2.txt",'a')
     (train_set_x,train_set_y,train_x,train_y),(test_set_x,test_set_y,test_x,test_y) = Rdata_load(filepath,
-                                    dataIndex*1569,(dataIndex+1)*1569)
-                                    # 10,1000)
+                                    # dataIndex*1569,(dataIndex+1)*1569)
+                                    10,1000)
     (topic_train, topic_label,topic_x,topic_y) = Ldata_load("../../dataset/features/dlda_1207.fword")
     print train_set_x.get_value(borrow=True).shape[0]
     print test_set_x.get_value(borrow=True).shape[0]
@@ -55,8 +56,6 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=200,
         for minibatch_index in xrange(n_train_batches):
             minibatch_avg_cost1 = r_train_fn(minibatch_index)
     predict_y, origin_y = r_get_test_label()  
-    print >> saveFile,'origin_y: ',origin_y
-    print >> saveFile,'predict_y: ',predict_y
     predict_y = change2PrimaryC(predict_y)
     origin_y = change2PrimaryC(origin_y)
     print 'first results from right DBN , presion, recall, F1, accuracy: '
@@ -116,7 +115,6 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=200,
         for minibatch_index in xrange(n_train_batches):
             minibatch_avg_cost = train_fn(minibatch_index)
     predict_y, origin_y = get_test_label()  
-    print >> saveFile,'predict_y: ',predict_y
     predict_y = change2PrimaryC(predict_y)
     origin_y = change2PrimaryC(origin_y)
     print 'second results from LDADBN, presion, recall, F1, accuracy: '
@@ -157,14 +155,14 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=200,
       
     filepath1=unicode(filepath,'utf8')
     y, x = svm_read_dataset(filepath1)
-    trainX = x[:dataIndex*1569]+x[(dataIndex+1)*1569:]
-    trainY = y[:dataIndex*1569]+y[(dataIndex+1)*1569:]
-    testX = x[dataIndex*1569:(dataIndex+1)*1569]
-    testY = y[dataIndex*1569:(dataIndex+1)*1569]
-#     trainX =x[100:]
-#     trainY=y[100:]
-#     testX=x[:100]
-#     testY=y[:100]
+    # trainX = x[:dataIndex*1569]+x[(dataIndex+1)*1569:]
+    # trainY = y[:dataIndex*1569]+y[(dataIndex+1)*1569:]
+    # testX = x[dataIndex*1569:(dataIndex+1)*1569]
+    # testY = y[dataIndex*1569:(dataIndex+1)*1569]
+    trainX =x[100:]
+    trainY=y[100:]
+    testX=x[:100]
+    testY=y[:100]
      
     m = svm_train(trainY, trainX, '-c 1')
     p_label, p_acc, p_val = svm_predict(testY,testX, m)
@@ -178,7 +176,6 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=200,
     per = Perceptron()
     per.fit(X, Y)
     perceptronResult = per.predict(test_x)
-    print >> saveFile,'predict_y: ',perceptronResult
     perceptronResult = change2PrimaryC(perceptronResult)
     test_precision,test_recall,F1 = evaluation(perceptronResult, test_y)
     print >> saveFile,(test_precision,test_recall,F1, getAccuracy(perceptronResult, test_y))
