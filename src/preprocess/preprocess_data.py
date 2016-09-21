@@ -71,27 +71,27 @@ def Ldata_load(dataset, fi = 0, ti = 0):
     x = []
     y =[]
     index = 0
-#     for line in lines:
-#         line = line.strip()
-#         temp = line.split('\t')
-#         if len(temp) < 2:
-#             continue
-#         dataArray = []
-#         for val in temp[1].split(' '):
-#             dataArray.append(float(val))
-#         data_x.append(array(dataArray))
-#         label.append(int(temp[0]))
     for line in lines:
         line = line.strip()
         temp = line.split('\t')
-        if len(temp) < 1:
+        if len(temp) < 2:
             continue
         dataArray = []
-        for val in temp:
+        for val in temp[1].split(' '):
             dataArray.append(float(val))
         data_x.append(array(dataArray))
-        label.append(int(index))
-        index +=1
+        label.append(int(temp[0]))
+#     for line in lines:
+#         line = line.strip()
+#         temp = line.split('\t')
+#         if len(temp) < 1:
+#             continue
+#         dataArray = []
+#         for val in temp:
+#             dataArray.append(float(val))
+#         data_x.append(array(dataArray))
+#         label.append(int(index))
+#         index +=1
     print shape(data_x)
     def shared_dataset(data_x, data_y,borrow=True):
         shared_x = theano.shared(numpy.asarray(data_x,dtype=theano.config.floatX),borrow=borrow)

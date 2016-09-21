@@ -7,10 +7,10 @@ Created on Sep 29, 2014
 import os,numpy,theano,cPickle
 import theano.tensor as T
 from theano.tensor.shared_randomstreams import RandomStreams
-from rbm import *
+from rbm_supervised import *
 from src.preprocess.preprocess_data import *
 class DBN(object):
-    def __init__(self,theano_rng=None,n_ins=1000,
+    def __init__(self,theano_rng=None,n_ins=1000, topic_input=None,
                  hidden_layers_sizes=[594,594,594],n_outs=40):
         self.n_ins = n_ins
         self.n_outs = n_outs
@@ -25,6 +25,9 @@ class DBN(object):
             theano_rng = RandomStreams(numpy_rng.randint(2**30))
         self.x = T.matrix('x')
         self.y = T.ivector('y')
+
+        self.topic = T.matrix('topic')
+
         for i in xrange(self.n_layers):
             if i==0:
                 input_size = n_ins
@@ -39,8 +42,15 @@ class DBN(object):
                                         activation=T.nnet.sigmoid)
             self.sigmoid_layers.append(sigmoid_layer)
             self.params.extend(sigmoid_layer.params)
-            
+
             rbm_layer = RBM(numpy_rng=numpy_rng,theano_rng=theano_rng,
+                                input=layer_input,
+                                n_visible=input_size,
+                                n_hidden=hidden_layers_sizes[i],
+                                W=sigmoid_layer.W,
+                                hbias=sigmoid_layer.b)
+            if  topic_input:
+                rbm_layer = RBM(numpy_rng=numpy_rng,theano_rng=theano_rng, topic_input=self.topic,
                             input=layer_input,
                             n_visible=input_size,
                             n_hidden=hidden_layers_sizes[i],
@@ -58,7 +68,7 @@ class DBN(object):
         self.feature = self.logLayer.getFeature()
         
     
-    def pretraining_function(self,train_set_x,batch_size,k):
+    def pretraining_function(self,train_set_x=None,topic_set=None, batch_size=None,k=1):
         
         index = T.lscalar('index')
         learning_rate = T.scalar('lr')
@@ -70,10 +80,16 @@ class DBN(object):
         pretrain_fns = []
         for rbm in self.rbm_layers:
             cost,updates = rbm.get_cost_updates(learning_rate,persistent=None,k=k)
+
+            # fn = theano.function(inputs=[index,theano.Param(learning_rate,default=0.1)],
+            #                      outputs = cost,
+            #                      updates = updates,
+            #                      givens = {self.x:train_set_x[batch_begin:batch_end] })
+            # if topic_set:
             fn = theano.function(inputs=[index,theano.Param(learning_rate,default=0.1)],
-                                 outputs = cost,
-                                 updates = updates,
-                                 givens = {self.x:train_set_x[batch_begin:batch_end]})
+                                     outputs = cost,
+                                     updates = updates,
+                                     givens = {self.x:train_set_x[batch_begin:batch_end],self.topic:topic_set[batch_begin:batch_end]})
             pretrain_fns.append(fn)
         getLayers = theano.function([index], self.getLayerOutput,
                    givens={self.x: train_set_x[index :]})
