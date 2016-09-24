@@ -6,15 +6,18 @@ Created on Sep 29, 2014
 #encoding=utf-8
 import os,numpy,theano,cPickle
 import theano.tensor as T
+from theano import *
 from theano.tensor.shared_randomstreams import RandomStreams
 from rbm_supervised import *
 from src.preprocess.preprocess_data import *
+
 class DBN(object):
-    def __init__(self,theano_rng=None,n_ins=1000, topic_input=None,
+    def __init__(self,theano_rng=None,n_ins=1000, topic_supervised=None,
                  hidden_layers_sizes=[594,594,594],n_outs=40):
         self.n_ins = n_ins
         self.n_outs = n_outs
         self.sigmoid_layers = []
+        self.sigmoid_topic_layers = []
         self.rbm_layers = []
         self.params = []
         self.hidden_layers_sizes =hidden_layers_sizes
@@ -32,25 +35,34 @@ class DBN(object):
             if i==0:
                 input_size = n_ins
                 layer_input = self.x
+                topic_input = self.topic
             else:
                 input_size = hidden_layers_sizes[i-1]
                 layer_input = self.sigmoid_layers[-1].output
+                topic_input = self.sigmoid_topic_layers[-1].output
             # get W and b
             sigmoid_layer = HiddenLayer(rng=numpy_rng,input=layer_input,
                                         n_in=input_size,
                                         n_out=hidden_layers_sizes[i],
                                         activation=T.nnet.sigmoid)
+            sigmoid_topic_layer = HiddenLayer(rng=numpy_rng,input=topic_input,
+                                        n_in=input_size,
+                                        n_out=hidden_layers_sizes[i],
+                                        activation=T.nnet.sigmoid,
+                                        W=sigmoid_layer.W,
+                                        b=sigmoid_layer.b)
             self.sigmoid_layers.append(sigmoid_layer)
+            self.sigmoid_topic_layers.append(sigmoid_topic_layer)
             self.params.extend(sigmoid_layer.params)
-
-            rbm_layer = RBM(numpy_rng=numpy_rng,theano_rng=theano_rng,
+            if not topic_supervised:
+                rbm_layer = RBM(numpy_rng=numpy_rng,theano_rng=theano_rng,
                                 input=layer_input,
                                 n_visible=input_size,
                                 n_hidden=hidden_layers_sizes[i],
                                 W=sigmoid_layer.W,
                                 hbias=sigmoid_layer.b)
-            if  topic_input:
-                rbm_layer = RBM(numpy_rng=numpy_rng,theano_rng=theano_rng, topic_input=self.topic,
+            else:
+                rbm_layer = RBM(numpy_rng=numpy_rng,theano_rng=theano_rng, topic_input=topic_input,
                             input=layer_input,
                             n_visible=input_size,
                             n_hidden=hidden_layers_sizes[i],
@@ -76,20 +88,20 @@ class DBN(object):
         n_batches = train_set_x.get_value(borrow=True).shape[0]/batch_size
         batch_begin = index*batch_size
         batch_end = batch_begin + batch_size
-        
+
         pretrain_fns = []
         for rbm in self.rbm_layers:
             cost,updates = rbm.get_cost_updates(learning_rate,persistent=None,k=k)
-
-            # fn = theano.function(inputs=[index,theano.Param(learning_rate,default=0.1)],
-            #                      outputs = cost,
-            #                      updates = updates,
-            #                      givens = {self.x:train_set_x[batch_begin:batch_end] })
-            # if topic_set:
-            fn = theano.function(inputs=[index,theano.Param(learning_rate,default=0.1)],
+            if not topic_set:
+                fn = theano.function(inputs=[index,theano.Param(learning_rate,default=0.1)],
+                                 outputs = cost,
+                                 updates = updates,
+                                 givens = {self.x:train_set_x[batch_begin:batch_end]})
+            if topic_set:
+                fn = theano.function(inputs=[index],
                                      outputs = cost,
                                      updates = updates,
-                                     givens = {self.x:train_set_x[batch_begin:batch_end],self.topic:topic_set[batch_begin:batch_end]})
+                                     givens = {self.x:train_set_x[batch_begin:batch_end], self.topic:topic_set[batch_begin:batch_end]})
             pretrain_fns.append(fn)
         getLayers = theano.function([index], self.getLayerOutput,
                    givens={self.x: train_set_x[index :]})

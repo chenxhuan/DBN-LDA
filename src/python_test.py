@@ -1,7 +1,32 @@
-from src.model.svmutil import *
+import numpy as np
+import theano
+import theano.tensor as T
 
-filepath = "../dataset/features/zzcxhg_feature_2014-11-16"
-saveFile = file("../output/result2.txt",'a')
+# Declare Theano symbolic variables
+x = T.dmatrix("x")
+w = T.dmatrix("w")
+b = T.dvector("b")
 
-filepath1=unicode(filepath,'utf8')
-y, x = svm_read_dataset(filepath1)
+fn = T.dot(x, w) + b
+
+# Compile
+train = theano.function(
+    inputs=[x,w,b],
+    outputs=fn)
+
+res = train([[0, 1], [-1, -2]], [[0, 1], [-1, -2]], [1,1])
+
+print("results:")
+print(res)
+
+fn1 = T.mean(w,axis=0)
+cfn1 = theano.function(
+    inputs=[w],
+    outputs=fn1)
+res = cfn1([[0, 1], [2, 3]])
+
+
+# print("results:")
+# print(res)
+
+print np.ones((3,))

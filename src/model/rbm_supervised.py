@@ -78,7 +78,6 @@ class RBM(object):
         self.input = input
         if not input:
             self.input = T.matrix('input')
-
         self.W = W
         self.hbias = hbias
         self.vbias = vbias
@@ -95,7 +94,7 @@ class RBM(object):
         return -hidden_term - vbias_term
     def free_energy_hidden(self, h_sample):
         ''' Function to compute the free energy for topic supvision'''
-        hw_a = T.dot(self.W, h_sample) + self.vbias
+        hw_a = T.dot(h_sample, self.W.transpose()) + self.vbias
         hbias_term = T.dot(h_sample, self.hbias)
         visible_term = T.sum(T.log(1 + T.exp(hw_a)), axis=1)
         return -visible_term - hbias_term
@@ -192,8 +191,6 @@ class RBM(object):
         # compute positive phase
         pre_sigmoid_ph, ph_mean, ph_sample = self.sample_h_given_v(self.input)
 
-        pre_sigmoid_th, th_mean, th_sample = self.sample_h_given_v(self.topic_input)
-
         # decide how to initialize persistent chain:
         # for CD, we use the newly generate hidden sample
         # for PCD, we initialize from the old state of the chain
@@ -220,21 +217,29 @@ class RBM(object):
         # determine gradients on RBM parameters
         # not that we only need the sample at the end of the chain
         chain_end = nv_samples[-1]
-
-        cost = T.mean(self.free_energy(self.input)) - T.mean(self.free_energy(chain_end))
-        if self.topic_input:
-            cost = 0.9*(T.mean(self.free_energy(self.input)) - T.mean(self.free_energy(chain_end))) + \
-                0.1*(T.mean(self.free_energy(self.topic_input)) - T.mean(self.free_energy(nh_samples[-1])))
-               # (T.mean(self.free_energy_hidden(th_sample)) - T.mean(self.free_energy_hidden(nh_samples[-1])))
-
-        # We must not compute the gradient through the gibbs sampling
-        gparams = T.grad(cost, self.params, consider_constant=[chain_end])
-
-        # constructs the update dictionary
-        for gparam, param in zip(gparams, self.params):
+        chain_end_nh = pre_sigmoid_nhs[-1]
+        if not self.topic_input:
+            cost = T.mean(self.free_energy(self.input)) - T.mean(self.free_energy(chain_end))
+            gparams = T.grad(cost, self.params, consider_constant=[chain_end])
+            # constructs the update dictionary
+            for gparam, param in zip(gparams, self.params):
             # make sure that the learning rate is of the right dtype
-            updates[param] = param - gparam * T.cast(lr,
-                                                    dtype=theano.config.floatX)
+                updates[param] = param - gparam * T.cast(lr,dtype=theano.config.floatX)
+        else:
+            pre_sigmoid_th, th_mean, th_sample = self.sample_h_given_v(self.topic_input)
+            # cost = (T.mean(self.free_energy(self.input)) - T.mean(self.free_energy(chain_end)))
+            #    (T.mean(self.free_energy_hidden(th_sample)) - T.mean(self.free_energy_hidden(chain_end_nh)))
+            # 0.1*(T.mean(self.free_energy(self.topic_input)) - T.mean(self.free_energy(chain_end)))
+
+            # constructs the update dictionary
+            updates[self.W] = self.W + 0.1*(T.dot(self.input.transpose(),ph_mean) - T.dot(chain_end.transpose(),nh_means[-1]))
+            updates[self.vbias] = self.vbias + 0.1*T.mean((self.input - chain_end), axis=0)
+            updates[self.hbias] = self.hbias + 0.1*T.mean((ph_mean - nh_means[-1]), axis=0)
+            cost = self.get_reconstruction_cost(th_mean, chain_end_nh)
+            gparam = T.grad(cost, self.W, consider_constant=[chain_end_nh])
+            updates[self.W] = self.W + gparam * 0.1
+
+
         if persistent:
             # Note that this works only if persistent is a shared variable
             updates[persistent] = nh_samples[-1]
@@ -242,10 +247,10 @@ class RBM(object):
             monitoring_cost = self.get_pseudo_likelihood_cost(updates)
         else:
             # reconstruction cross-entropy is a better proxy for CD
-            monitoring_cost = self.get_reconstruction_cost(updates,
-                                                           pre_sigmoid_nvs[-1])
+            monitoring_cost = self.get_reconstruction_cost(self.input,pre_sigmoid_nvs[-1])
 
         return monitoring_cost, updates
+        # return cost, updates
 
     def get_pseudo_likelihood_cost(self, updates):
         """Stochastic approximation to the pseudo-likelihood"""
@@ -276,7 +281,7 @@ class RBM(object):
 
         return cost
 
-    def get_reconstruction_cost(self, updates, pre_sigmoid_nv):
+    def get_reconstruction_cost(self, origin, pre_sigmoid_nv):
         """Approximation to the reconstruction error
 
         Note that this function requires the pre-sigmoid activation as
@@ -307,8 +312,8 @@ class RBM(object):
         """
 
         cross_entropy = T.mean(
-                T.sum(self.input * T.log(T.nnet.sigmoid(pre_sigmoid_nv)) +
-                (1 - self.input) * T.log(1 - T.nnet.sigmoid(pre_sigmoid_nv)),
+                T.sum(origin * T.log(T.nnet.sigmoid(pre_sigmoid_nv)) +
+                (1 - origin) * T.log(1 - T.nnet.sigmoid(pre_sigmoid_nv)),
                       axis=1))
 
         return cross_entropy

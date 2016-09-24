@@ -15,15 +15,15 @@ from sklearn.linear_model import LogisticRegression as LR, Perceptron
 from sklearn import tree
 
 def trainTdbn(finetune_lr=0.1,pretraining_epochs=200,
-              pretrain_lr=0.01,k=1,training_epochs=200,batch_size=10,dataIndex=0):
+              pretrain_lr=0.01,k=1,training_epochs=200,batch_size=1,dataIndex=0):
     
-    start_time = time.clock()
-    filepath = "../../dataset/features/tnbz_annotation"
+    start_time = time.time()
+    filepath = "../../dataset/features/mixed_2015-03-25"
     # filepath = "../../dataset/features/mixed_2015-03-25"
     saveFile = file("../../output/result2.txt",'a')
     (train_set_x,train_set_y,train_x,train_y),(test_set_x,test_set_y,test_x,test_y) = Rdata_load(filepath,
                                     # dataIndex*1569,(dataIndex+1)*1569)
-                                    0,1000)
+                                    0,500)
     (topic_train, topic_label,topic_x,topic_y) = Ldata_load("../../dataset/features/topicFeature_2014-11-21")
     print train_set_x.get_value(borrow=True).shape[0]
     print test_set_x.get_value(borrow=True).shape[0]
@@ -39,7 +39,7 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=200,
     n_out = 26
 
     print '..... building the topic supervised DBN'
-    tDBN = DBN(n_ins=1188,topic_input=True, hidden_layers_sizes=[594,594,594],n_outs=n_out)
+    tDBN = DBN(n_ins=1188,topic_supervised=True, hidden_layers_sizes=[594,594,594],n_outs=n_out)
 
     pretrainingR_fns,Layers = tDBN.pretraining_function(train_set_x=train_set_x,topic_set=topic_sets, batch_size=batch_size, k=k)
 
@@ -47,10 +47,10 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=200,
         for epoch in xrange(pretraining_epochs):
             c = []
             for batch_index in xrange(n_train_batches):
-                c.append(pretrainingR_fns[i](index=batch_index,lr=pretrain_lr))
+                c.append(pretrainingR_fns[i](index=batch_index))
             print 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
             print numpy.mean(c)
-    end_time = time.clock()
+    end_time = time.time()
     print 'Training ran for %.2f mins' % ((end_time - start_time) / 60.)
     r_train_fn, r_test_score, r_get_test_label, r_features, Layers = tDBN.build_finetune_functions(
         datasets=r_datasets, batch_size=batch_size,
@@ -73,9 +73,9 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=200,
 
     print '..... building the right and left model'
     rDBN = DBN(n_ins=1188,hidden_layers_sizes=[594,594,594],n_outs=n_out)
-           
-    pretrainingR_fns,Layers = rDBN.pretraining_function(train_set_x, batch_size, k)
-           
+
+    pretrainingR_fns,Layers = rDBN.pretraining_function(train_set_x=train_set_x, batch_size=batch_size, k=k)
+
     for i in xrange(rDBN.n_layers):
         for epoch in xrange(pretraining_epochs):
             c = []
@@ -83,7 +83,7 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=200,
                 c.append(pretrainingR_fns[i](index=batch_index,lr=pretrain_lr))
             print 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
             print numpy.mean(c)
-    end_time = time.clock()
+    end_time = time.time()
     print 'Training ran for %.2f mins' % ((end_time - start_time) / 60.)
     r_train_fn, r_test_score, r_get_test_label, r_features, Layers = rDBN.build_finetune_functions(
                 datasets=r_datasets, batch_size=batch_size,
@@ -93,13 +93,15 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=200,
         epoch = epoch + 1
         for minibatch_index in xrange(n_train_batches):
             minibatch_avg_cost1 = r_train_fn(minibatch_index)
-    predict_y, origin_y = r_get_test_label()  
+    predict_y, origin_y = r_get_test_label()
     predict_y = change2PrimaryC(predict_y)
     origin_y = change2PrimaryC(origin_y)
     print 'first results from right DBN , presion, recall, F1, accuracy: '
     print >> saveFile,'first results from right DBN , presion, recall, F1, accuracy: '
     print >> saveFile,evaluation(predict_y, origin_y),getAccuracy(predict_y, origin_y)
-          
+    print 'first results from right DBN , presion, recall, F1, accuracy: '
+    print evaluation(predict_y, origin_y),getAccuracy(predict_y, origin_y)
+
     r_sigmoid_layers,r_output,r_params = rDBN.getParams(train_set_x)
     r_sigmoid_layersT,r_outputT,r_paramsT = rDBN.getParams(test_set_x)
     print shape(r_sigmoid_layers())
@@ -135,7 +137,7 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=200,
     shared_x = theano.shared(numpy.asarray(new_features,dtype=theano.config.floatX),borrow=True)
     shared_y = theano.shared(numpy.asarray(new_featuresT,dtype=theano.config.floatX),borrow=True)
     dbn = DBN(n_ins=n_dim, hidden_layers_sizes=[n_dim/4],n_outs=26)
-    pretraining_fns, Layers = dbn.pretraining_function(shared_x, batch_size, k)
+    pretraining_fns, Layers = dbn.pretraining_function(train_set_x=shared_x, batch_size=batch_size, k=k)
     for i in xrange(dbn.n_layers):
         for epoch in xrange(pretraining_epochs):
             c = []
@@ -226,7 +228,7 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=200,
     TreeResult = change2PrimaryC(TreeResult)
     test_precision,test_recall,F1 = evaluation(TreeResult, test_y)
     print >> saveFile,(test_precision,test_recall,F1, getAccuracy(TreeResult, test_y))
-    end_time = time.clock()
+    end_time = time.time()
     print >> saveFile,'Finish all using  %.2f mins' % ((end_time - start_time) / 60.)
     print 'Finish all using  %.2f mins' % ((end_time - start_time) / 60.)
     print >>saveFile,'------------------------------------------------------------------------------'
