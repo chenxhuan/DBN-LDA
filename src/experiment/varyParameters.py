@@ -5,11 +5,12 @@ Created on Nov 27, 2014
 '''
 #encoding=utf-8
 import os,numpy,theano,cPickle,sys,time, sklearn
+sys.path.append("..")
 import theano.tensor as T
-from src.preprocess.preprocess_data import *
-from src.model.dualDBN import *
+from preprocess.preprocess_data import *
+from model.dualDBN import *
 from evaluation import *
-from svmutil import *
+from model.svmutil import *
 from som_enhanced import *
 from minisom import MiniSom
 from sklearn.naive_bayes import GaussianNB

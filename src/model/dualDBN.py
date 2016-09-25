@@ -4,12 +4,13 @@ Created on Sep 29, 2014
 @author: chenxh
 '''
 #encoding=utf-8
-import os,numpy,theano,cPickle
+import os,numpy,theano,cPickle,sys
+sys.path.append("..")
 import theano.tensor as T
 from theano import *
 from theano.tensor.shared_randomstreams import RandomStreams
 from rbm_supervised import *
-from src.preprocess.preprocess_data import *
+from preprocess.preprocess_data import *
 
 class DBN(object):
     def __init__(self,theano_rng=None,n_ins=1000, topic_supervised=None,
@@ -98,7 +99,7 @@ class DBN(object):
                                  updates = updates,
                                  givens = {self.x:train_set_x[batch_begin:batch_end]})
             if topic_set:
-                fn = theano.function(inputs=[index],
+                fn = theano.function(inputs=[index,theano.Param(learning_rate,default=0.1)],
                                      outputs = cost,
                                      updates = updates,
                                      givens = {self.x:train_set_x[batch_begin:batch_end], self.topic:topic_set[batch_begin:batch_end]})

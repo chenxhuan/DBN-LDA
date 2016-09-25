@@ -230,14 +230,21 @@ class RBM(object):
             # cost = (T.mean(self.free_energy(self.input)) - T.mean(self.free_energy(chain_end)))
             #    (T.mean(self.free_energy_hidden(th_sample)) - T.mean(self.free_energy_hidden(chain_end_nh)))
             # 0.1*(T.mean(self.free_energy(self.topic_input)) - T.mean(self.free_energy(chain_end)))
+            cost = T.mean(self.free_energy(self.input)) - T.mean(self.free_energy(chain_end))
+            gparams = T.grad(cost, self.params, consider_constant=[chain_end])
+            # constructs the update dictionary
+            for gparam, param in zip(gparams, self.params):
+                # make sure that the learning rate is of the right dtype
+                updates[param] = param - gparam * T.cast(lr,dtype=theano.config.floatX)
+
 
             # constructs the update dictionary
-            updates[self.W] = self.W + 0.1*(T.dot(self.input.transpose(),ph_mean) - T.dot(chain_end.transpose(),nh_means[-1]))
-            updates[self.vbias] = self.vbias + 0.1*T.mean((self.input - chain_end), axis=0)
-            updates[self.hbias] = self.hbias + 0.1*T.mean((ph_mean - nh_means[-1]), axis=0)
+            # updates[self.W] = self.W + (T.dot(self.input.transpose(),ph_mean) - T.dot(chain_end.transpose(),nh_means[-1]))* T.cast(lr,dtype=theano.config.floatX)
+            # updates[self.vbias] = self.vbias + T.mean((self.input - chain_end), axis=0)* T.cast(lr,dtype=theano.config.floatX)
+            # updates[self.hbias] = self.hbias + T.mean((ph_mean - nh_means[-1]), axis=0)* T.cast(lr,dtype=theano.config.floatX)
             cost = self.get_reconstruction_cost(th_mean, chain_end_nh)
             gparam = T.grad(cost, self.W, consider_constant=[chain_end_nh])
-            updates[self.W] = self.W + gparam * 0.1
+            updates[self.W] = self.W + gparam * T.cast(lr,dtype=theano.config.floatX)
 
 
         if persistent:

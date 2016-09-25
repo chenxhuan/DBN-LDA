@@ -5,13 +5,14 @@ Created on Sep 30, 2014
 '''
 #encoding=utf-8
 import os,numpy,theano,cPickle,sys,time
+sys.path.append("..")
 import theano.tensor as T
-from src.preprocess.preprocess_data import *
-from src.model.dualDBN import *
+from preprocess.preprocess_data import *
+from model.dualDBN import *
 from evaluation import *
-from src.model.reconstructedDBN import *
+from model.reconstructedDBN import *
 from svmutil import *
-from src.model.som_enhanced import *
+from model.som_enhanced import *
 from minisom import MiniSom
 
 def trainDdbn(finetune_lr=0.1,pretraining_epochs=200,

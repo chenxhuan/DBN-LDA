@@ -5,10 +5,11 @@ Created on Mar 17, 2015
 '''
 #encoding=utf-8
 import os,numpy,theano,cPickle,sys,time
+sys.path.append("..")
 import theano.tensor as T
-from src.preprocess.preprocess_data import *
-from src.model.dualDBN import *
-from src.experiment.evaluation import *
+from preprocess.preprocess_data import *
+from model.dualDBN import *
+from experiment.evaluation import *
 
 def trainLDADBN(finetune_lr = 0.1, pretraining_epochs = 200, pretrain_lr = 0.01, k = 1,
                 training_epochs = 200, batch_size = 10, dataIndex = 0):

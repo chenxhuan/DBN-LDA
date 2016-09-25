@@ -3,12 +3,13 @@ Created on Sep 2, 2014
 
 @author: chenxh
 '''
-import os, numpy, theano
+import os, numpy, theano,sys
+sys.path.append("..")
 import cPickle
 import theano.tensor as T
 from theano.tensor.shared_randomstreams import RandomStreams
-from src.preprocess.preprocess_data import *
-from src.model.rbm import *
+from preprocess.preprocess_data import *
+from model.rbm import *
 
 class Testing(object):
     

@@ -3,9 +3,11 @@ Created on Mar 20, 2015
 
 @author: chenxh
 '''
-from src.preprocess.preprocess_data import *
+import sys
+sys.path.append("..")
+from preprocess.preprocess_data import *
 from testing_with_savePares import *
-from src.experiment.evaluation import *
+from experiment.evaluation import *
 
 def getTopicName(index):
     

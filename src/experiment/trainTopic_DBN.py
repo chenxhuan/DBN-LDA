@@ -5,11 +5,12 @@ Created on Nov 11, 2014
 '''
 #encoding=utf-8
 import os,numpy,theano,cPickle,sys,time, sklearn
+sys.path.append("..")
 import theano.tensor as T
-from src.preprocess.preprocess_data import *
-from src.model.dualDBN import *
+from preprocess.preprocess_data import *
+from model.dualDBN import *
 from evaluation import *
-from src.model.svmutil import *
+from model.svmutil import *
 from sklearn.naive_bayes import GaussianNB
 from sklearn.linear_model import LogisticRegression as LR, Perceptron
 from sklearn import tree
@@ -47,7 +48,7 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=200,
         for epoch in xrange(pretraining_epochs):
             c = []
             for batch_index in xrange(n_train_batches):
-                c.append(pretrainingR_fns[i](index=batch_index))
+                c.append(pretrainingR_fns[i](index=batch_index,lr=pretrain_lr))
             print 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
             print numpy.mean(c)
     end_time = time.time()
