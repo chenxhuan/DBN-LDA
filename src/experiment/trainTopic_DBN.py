@@ -16,7 +16,7 @@ from sklearn.linear_model import LogisticRegression as LR, Perceptron
 from sklearn import tree
 
 def trainTdbn(finetune_lr=0.1,pretraining_epochs=200,
-              pretrain_lr=0.01,k=1,training_epochs=200,batch_size=1,dataIndex=0):
+              pretrain_lr=0.1,k=1,training_epochs=200,batch_size=1,dataIndex=0):
     
     start_time = time.time()
     filepath = "../../dataset/features/mixed_2015-03-25"
@@ -24,7 +24,7 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=200,
     saveFile = file("../../output/result2.txt",'a')
     (train_set_x,train_set_y,train_x,train_y),(test_set_x,test_set_y,test_x,test_y) = Rdata_load(filepath,
                                     # dataIndex*1569,(dataIndex+1)*1569)
-                                    0,500)
+                                    0,162)
     (topic_train, topic_label,topic_x,topic_y) = Ldata_load("../../dataset/features/topicFeature_2014-11-21")
     print train_set_x.get_value(borrow=True).shape[0]
     print test_set_x.get_value(borrow=True).shape[0]
