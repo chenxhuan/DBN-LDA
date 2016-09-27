@@ -229,7 +229,7 @@ class RBM(object):
             pre_sigmoid_th, th_mean, th_sample = self.sample_h_given_v(self.topic_input)
             res_cost  = self.get_reconstruction_cost(th_mean, chain_end_nh)
             cost = (T.mean(self.free_energy(self.input)) - T.mean(self.free_energy(chain_end))) + \
-                   0.01*res_cost
+                   0.05*res_cost
             gparams = T.grad(cost, self.params, consider_constant=[chain_end,res_cost])
             # constructs the update dictionary
             for gparam, param in zip(gparams, self.params):
