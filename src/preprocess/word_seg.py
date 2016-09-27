@@ -1,4 +1,9 @@
 #encoding=utf-8
+'''
+Created on 2016-9-26
+
+@author: xinhuan
+'''
 import jieba, codecs, re, sys, os, time
 sys.path.append("..")
 reload(sys)
@@ -7,12 +12,12 @@ reload(sys)
 input_userDic = codecs.open("../../dataset/user.dic","r","utf-8")
 userDic = input_userDic.readlines()
 for word in userDic:
-    word = word.strip().replace("\n","").replace("\r","")
+    word = word.strip().replace("\n","").replace("\r","").encode("utf-8")
     jieba.add_word(word)
 input_userDic.close()
 
 #去停词
-r = "[+.!/_,$%^*(+\"\']+|[+——！，,。﹌“·”《’‘》;…:：；℅～、~@#￥%……&*（）】【？?\n\t]+"
+r = "[A-Za-z0-9\[+.!/_,$%^*(+\"\']+|[+——！，,。﹌“·”《’‘》;…:：；℅～、~@#￥%……&*（）】【？?\n\t]+"
 noUsedWords = {}
 input_stopwords = codecs.open('../../dataset/stopword-full.dic','r','utf-8')
 i = 0
@@ -28,8 +33,8 @@ input_topics = codecs.open('../../dataset/topics','r','utf-8')
 i = 0
 for word in input_topics.readlines():
     word = word.strip().replace("\n","").replace("\r","").encode("utf-8")
-    i += 1
     labels[str(word)] = str(i)
+    i += 1
 input_topics.close()
 
 def process(inputFile, saveFile):
