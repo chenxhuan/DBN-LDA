@@ -1,0 +1,16 @@
+test results from topic supervised DBN, presion, recall, F1, accuracy: 
+(0.41867659199219487, 0.36471820530307819, 0.38983913541679532) 0.416
+first results from right DBN , presion, recall, F1, accuracy: 
+(0.4142005826440795, 0.35990886734820998, 0.38515086608459348) 0.424
+third results from GNaiveBayes , presion, recall, F1, accuracy: 
+(0.31911236451110475, 0.39927319898280317, 0.35472042058761566, 0.476)
+third results from LogisticRegression , presion, recall, F1, accuracy: 
+(0.40140623098454425, 0.47536060644648082, 0.43526443119427466, 0.582)
+fifth results from SVM, presion,recall,F1,accuracy
+(0.058000000000000003, 0.16666666666666666, 0.086053412462908027, 0.058)
+sixth results from Perception, presion,recall,F1,accuracy
+(0.36778811603416345, 0.42836908368483845, 0.39577374496225987, 0.512)
+seventh results from Decision Trees, presion,recall,F1,accuracy
+(0.3566055369852838, 0.45902033835040107, 0.40138303404668796, 0.536)
+Finish all using  182.06 mins
+------------------------------------------------------------------------------

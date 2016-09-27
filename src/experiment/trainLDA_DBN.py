@@ -8,7 +8,7 @@ import os,numpy,theano,cPickle,sys,time, sklearn
 sys.path.append("..")
 import theano.tensor as T
 from preprocess.preprocess_data import *
-from model.dualDBN import *
+from model.DBN import *
 from evaluation import *
 from model.svmutil import *
 from sklearn.naive_bayes import GaussianNB

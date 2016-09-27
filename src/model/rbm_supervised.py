@@ -227,16 +227,21 @@ class RBM(object):
                 updates[param] = param - gparam * T.cast(lr,dtype=theano.config.floatX)
         else:
             pre_sigmoid_th, th_mean, th_sample = self.sample_h_given_v(self.topic_input)
-            res_cost  = self.get_reconstruction_cost(th_mean, chain_end_nh)
-            cost = (T.mean(self.free_energy(self.input)) - T.mean(self.free_energy(chain_end))) + \
-                   0.05*res_cost
-            gparams = T.grad(cost, self.params, consider_constant=[chain_end,res_cost])
+
+            # cost = (T.mean(self.free_energy(self.input)) - T.mean(self.free_energy(chain_end))) + \
+            #        0.05*res_cost
+            cost = (T.mean(self.free_energy(self.input)) - T.mean(self.free_energy(chain_end)))
+            gparams = T.grad(cost, self.params, consider_constant=[chain_end])
             # constructs the update dictionary
             for gparam, param in zip(gparams, self.params):
                 # make sure that the learning rate is of the right dtype
                 updates[param] = param - gparam * T.cast(lr,dtype=theano.config.floatX)
                 # 0.1*(T.mean(self.free_energy(self.topic_input)) - T.mean(self.free_energy(chain_end)))
-
+            res_cost  = self.get_reconstruction_cost(th_mean, pre_sigmoid_ph)
+            wparam = T.grad(res_cost, self.W)
+            hparam = T.grad(res_cost, self.hbias)
+            updates[self.W] = self.W + wparam * T.cast(lr,dtype=theano.config.floatX)
+            updates[self.hbias] = self.hbias + hparam * T.cast(lr,dtype=theano.config.floatX)
                 # constructs the update dictionary
                 # updates[self.W] = self.W + 0.1*(T.dot(self.input.transpose(),ph_mean) - T.dot(chain_end.transpose(),nh_means[-1]))
                 # updates[self.vbias] = self.vbias + 0.1*T.mean((self.input - chain_end), axis=0)
