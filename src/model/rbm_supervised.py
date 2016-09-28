@@ -227,9 +227,9 @@ class RBM(object):
                 updates[param] = param - gparam * T.cast(lr,dtype=theano.config.floatX)
         else:
             pre_sigmoid_th, th_mean, th_sample = self.sample_h_given_v(self.topic_input)
-	    res_cost  = self.get_reconstruction_cost(th_sample, pre_sigmoid_ph)
-            cost = (T.mean(self.free_energy(self.input)) - T.mean(self.free_energy(chain_end))) + \
-                    0.1*res_cost
+            res_cost  = self.get_reconstruction_cost(th_mean, pre_sigmoid_ph)
+            cost = (T.mean(self.free_energy(self.input)) - T.mean(self.free_energy(chain_end))) - \
+                    0.05*res_cost
             #cost = (T.mean(self.free_energy(self.input)) - T.mean(self.free_energy(chain_end)))
             gparams = T.grad(cost, self.params, consider_constant=[chain_end,res_cost])
             # constructs the update dictionary
@@ -260,7 +260,7 @@ class RBM(object):
             # reconstruction cross-entropy is a better proxy for CD
             monitoring_cost = self.get_reconstruction_cost(self.input, pre_sigmoid_nvs[-1])
 
-        return monitoring_cost, updates
+        return monitoring_cost, cost, updates
         # return cost, updates
 
     def get_pseudo_likelihood_cost(self, updates):

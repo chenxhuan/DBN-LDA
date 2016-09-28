@@ -1,20 +1,17 @@
-test results from topic supervised DBN, presion, recall, F1, accuracy: 
-(0.41867659199219487, 0.36471820530307819, 0.38983913541679532) 0.416
-first results from right DBN , presion, recall, F1, accuracy: 
-(0.4142005826440795, 0.35990886734820998, 0.38515086608459348) 0.424
-third results from GNaiveBayes , presion, recall, F1, accuracy: 
-(0.31911236451110475, 0.39927319898280317, 0.35472042058761566, 0.476)
-third results from LogisticRegression , presion, recall, F1, accuracy: 
-(0.40140623098454425, 0.47536060644648082, 0.43526443119427466, 0.582)
-fifth results from SVM, presion,recall,F1,accuracy
-(0.058000000000000003, 0.16666666666666666, 0.086053412462908027, 0.058)
-sixth results from Perception, presion,recall,F1,accuracy
-(0.36778811603416345, 0.42836908368483845, 0.39577374496225987, 0.512)
-seventh results from Decision Trees, presion,recall,F1,accuracy
-(0.3566055369852838, 0.45902033835040107, 0.40138303404668796, 0.536)
-Finish all using  182.06 mins
 ------------------------------------------------------------------------------
 test results from topic supervised DBN, presion, recall, F1, accuracy: 
-(0.108, 0.16666666666666666, 0.13106796116504854) 0.108
-test results from topic supervised DBN, presion, recall, F1, accuracy: 
-(0.4938114330375365, 0.48032551131565793, 0.48697512283503752) 0.612
+(0.65111283643892337, 0.645001485442662, 0.64804275302539172) 0.689655172414
+test results from dual supervised DBN, presion, recall, F1, accuracy: 
+(0.52480005775565441, 0.62166270548623492, 0.56913950318136608) 0.672413793103
+first results from right DBN , presion, recall, F1, accuracy: 
+(0.53299659784862552, 0.63167954050306985, 0.57815736912960025) 0.681034482759
+third results from GNaiveBayes , presion, recall, F1, accuracy: 
+(0.52139376131628679, 0.60830114874232522, 0.56150456398767612, 0.6551724137931034)
+fourth results from SVM, presion,recall,F1,accuracy
+(0.37931034482758619, 0.20000000000000001, 0.26190476190476186, 0.3793103448275862)
+fifth results from Perception, presion,recall,F1,accuracy
+(0.61267356674333417, 0.66747870865517922, 0.63890299461397704, 0.6982758620689655)
+sixth results from Decision Trees, presion,recall,F1,accuracy
+(0.47392233370494247, 0.55080956625074273, 0.50948146549521467, 0.603448275862069)
+Finish all using  31.61 mins
+------------------------------------------------------------------------------

@@ -65,19 +65,19 @@ def process(inputFile, saveFile, topN):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 4:
+    if len(sys.argv) != 3:
         start = time.time()
         # date = time.strftime('%Y%m%d',time.localtime(time.time()))
         inputFile = '../../dataset/wordSegmentation/annotation1000_20160927'
         saveFile = '../../dataset/features/'+inputFile.split('/')[-1].split('.txt')[0]
         process(inputFile, saveFile,123)
         end = time.time()
-        print 'finish ws :', end - start, 's'
+        print 'finish :', end - start, 's'
     else:
         start = time.time()
         # date = time.strftime('%Y%m%d',time.localtime(time.time()))
-        inputFile = '../../dataset/wordSegmentation/'+sys.argv[2]
+        inputFile = '../../dataset/wordSegmentation/'+sys.argv[1]
         saveFile = '../../dataset/features/'+inputFile.split('/')[-1].split('.txt')[0]
-        process(inputFile, saveFile, int(sys.argv[3]))
+        process(inputFile, saveFile, int(sys.argv[2]))
         end = time.time()
-        print 'finish ws :', end - start, 's'
+        print 'finish:', end - start, 's'

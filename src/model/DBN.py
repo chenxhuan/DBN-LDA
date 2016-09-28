@@ -92,15 +92,15 @@ class DBN(object):
 
         pretrain_fns = []
         for rbm in self.rbm_layers:
-            cost,updates = rbm.get_cost_updates(learning_rate,persistent=None,k=k)
+            monitoring_cost, cost,updates = rbm.get_cost_updates(learning_rate,persistent=None,k=k)
             if not topic_set:
                 fn = theano.function(inputs=[index,theano.Param(learning_rate,default=0.1)],
-                                 outputs = cost,
+                                 outputs = [monitoring_cost, cost],
                                  updates = updates,
                                  givens = {self.x:train_set_x[batch_begin:batch_end]})
             if topic_set:
                 fn = theano.function(inputs=[index,theano.Param(learning_rate,default=0.1)],
-                                     outputs = cost,
+                                     outputs = [monitoring_cost, cost],
                                      updates = updates,
                                      givens = {self.x:train_set_x[batch_begin:batch_end], self.topic:topic_set[batch_begin:batch_end]})
             pretrain_fns.append(fn)
@@ -137,7 +137,7 @@ class DBN(object):
         getfeature = theano.function([index],self.feature,
                                     givens={self.x:test_set_x[index:]})
         getLayers = theano.function([index], self.getLayerOutput,
-                   givens={self.x: test_set_x[index :]})
+                   givens={self.x: train_set_x[index :]})
         
         def Layers():
             return getLayers(0)

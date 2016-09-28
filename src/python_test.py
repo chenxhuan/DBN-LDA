@@ -29,4 +29,4 @@ res = cfn1([[0, 1], [2, 3]])
 # print("results:")
 # print(res)
 
-print np.ones((3,))
+print np.mean([[0, 0], [-1, -2]],axis=0)
