@@ -14,3 +14,7 @@ seventh results from Decision Trees, presion,recall,F1,accuracy
 (0.3566055369852838, 0.45902033835040107, 0.40138303404668796, 0.536)
 Finish all using  182.06 mins
 ------------------------------------------------------------------------------
+test results from topic supervised DBN, presion, recall, F1, accuracy: 
+(0.108, 0.16666666666666666, 0.13106796116504854) 0.108
+test results from topic supervised DBN, presion, recall, F1, accuracy: 
+(0.4938114330375365, 0.48032551131565793, 0.48697512283503752) 0.612

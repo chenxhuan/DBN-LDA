@@ -94,7 +94,6 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=200,
         for minibatch_index in xrange(n_train_batches):
             minibatch_avg_cost1 = r_train_fn(minibatch_index)
     shared_x = theano.shared(numpy.asarray(Layers(),dtype=theano.config.floatX),borrow=True)
-    tmp_datasets = [(shared_x,train_set_y),(test_set_x,test_set_y)]
     dbn2 = DBN(n_ins=594, hidden_layers_sizes=[594],n_outs=n_out)
     pretrainingR_fns,Layers = dbn2.pretraining_function(train_set_x=shared_x, batch_size=batch_size, k=k)
     for i in xrange(dbn2.n_layers):
@@ -107,7 +106,7 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=200,
     end_time = time.time()
     print 'Training ran for %.2f mins' % ((end_time - start_time) / 60.)
     r_train_fn, r_test_score, r_get_test_label, r_features, Layers = dbn2.build_finetune_functions(
-        datasets=tmp_datasets, batch_size=batch_size,
+        datasets=r_datasets, batch_size=batch_size,
         learning_rate=finetune_lr)
     epoch = 0
     while (epoch < training_epochs):
@@ -115,7 +114,6 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=200,
         for minibatch_index in xrange(n_train_batches):
             minibatch_avg_cost1 = r_train_fn(minibatch_index)
     shared_x = theano.shared(numpy.asarray(Layers(),dtype=theano.config.floatX),borrow=True)
-    tmp_datasets = [(shared_x,train_set_y),(test_set_x,test_set_y)]
     dbn3 = DBN(n_ins=594, hidden_layers_sizes=[594],n_outs=n_out)
     pretrainingR_fns,Layers = dbn3.pretraining_function(train_set_x=shared_x, batch_size=batch_size, k=k)
     for i in xrange(dbn3.n_layers):
@@ -128,7 +126,7 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=200,
     end_time = time.time()
     print 'Training ran for %.2f mins' % ((end_time - start_time) / 60.)
     r_train_fn, r_test_score, r_get_test_label, r_features, Layers = dbn3.build_finetune_functions(
-        datasets=tmp_datasets, batch_size=batch_size,
+        datasets=r_datasets, batch_size=batch_size,
         learning_rate=finetune_lr)
     epoch = 0
     while (epoch < training_epochs):

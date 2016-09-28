@@ -260,7 +260,7 @@ class RBM(object):
             # reconstruction cross-entropy is a better proxy for CD
             monitoring_cost = self.get_reconstruction_cost(self.input, pre_sigmoid_nvs[-1])
 
-        return monitoring_cost, updates
+        return cost, updates
         # return cost, updates
 
     def get_pseudo_likelihood_cost(self, updates):
