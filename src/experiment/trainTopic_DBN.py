@@ -22,6 +22,7 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=300,
     filepath = "../../dataset/features/annotation1000_20160927"
     # filepath = "../../dataset/features/mixed_2015-03-25"
     saveFile = file("../../output/result2.txt",'a')
+    print >> saveFile, 'round ', ind
     start_index = 0
     end_index = 116
     fold_size = 100
@@ -262,7 +263,7 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=300,
     print 'Finish all using  %.2f mins' % ((end_time - start_time) / 60.)
     print >>saveFile,'------------------------------------------------------------------------------'
     
-# trainTdbn()
+# trainTdbn(dataIndex=1)
 for ind in xrange(10):
     print 'round ', ind
     trainTdbn(dataIndex=ind)

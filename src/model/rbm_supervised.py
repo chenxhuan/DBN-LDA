@@ -236,14 +236,14 @@ class RBM(object):
         else:
             pre_sigmoid_th, th_mean, th_sample = self.sample_h_given_v(self.topic_input)
             res_cost  = self.get_reconstruction_cost(self.topic_input, pre_sigmoid_rv)
-            cost = (T.mean(self.free_energy(self.input)) - T.mean(self.free_energy(chain_end))) - \
-                    0.01*res_cost
+            cost = self.get_reconstruction_cost(self.input, pre_sigmoid_rv) - \
+                    0.0*res_cost
             #cost = (T.mean(self.free_energy(self.input)) - T.mean(self.free_energy(chain_end)))
-            gparams = T.grad(cost, self.params, consider_constant=[chain_end,res_cost])
+            gparams = T.grad(cost, self.params, consider_constant=[res_cost])
             # constructs the update dictionary
             for gparam, param in zip(gparams, self.params):
                 # make sure that the learning rate is of the right dtype
-                updates[param] = param - gparam * T.cast(lr,dtype=theano.config.floatX)
+                updates[param] = param + gparam * T.cast(lr,dtype=theano.config.floatX)
                 # 0.1*(T.mean(self.free_energy(self.topic_input)) - T.mean(self.free_energy(chain_end)))
             # cost  = self.get_reconstruction_cost(self.topic_input, pre_sigmoid_rv)
             # wparam = T.grad(cost, self.W)
