@@ -103,6 +103,7 @@ class DBN(object):
                                      outputs = [monitoring_cost, cost],
                                      updates = updates,
                                      givens = {self.x:train_set_x[batch_begin:batch_end], self.topic:topic_set[batch_begin:batch_end]})
+                                     # givens = {self.x:train_set_x[batch_begin:batch_end]})
             pretrain_fns.append(fn)
         getLayers = theano.function([index], self.getLayerOutput,
                    givens={self.x: train_set_x[index :]})

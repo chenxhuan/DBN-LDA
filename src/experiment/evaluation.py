@@ -53,4 +53,4 @@ def evaluation(predict_y,origin_y):
             recalls.append(0)
     test_recall = numpy.mean(recalls)
     F1 = test_precision*test_recall*2/(test_precision+test_recall)
-    return test_precision,test_recall,F1
+    return [test_precision,test_recall,F1]
