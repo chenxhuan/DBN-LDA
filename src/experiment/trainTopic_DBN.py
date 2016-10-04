@@ -19,13 +19,13 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=300,
               pretrain_lr=0.1,k=1,training_epochs=200,batch_size=10,dataIndex=0):
     
     start_time = time.time()
-    filepath = "../../dataset/features/tnbz_TFIDFfeature_2014-11-14"
-    # filepath = "../../dataset/features/mixed_2015-03-25"
+    # filepath = "../../dataset/features/anno1000_feature_2014-11-17"
+    filepath = "../../dataset/features/mixed_2015-03-25"
     saveFile = file("../../output/result2.txt",'a')
     print >> saveFile, 'round ', dataIndex
     start_index = 0
     end_index = 116
-    fold_size = 393
+    fold_size = 116
     (train_set_x,train_set_y,train_x,train_y),(test_set_x,test_set_y,test_x,test_y) = Rdata_load(filepath,
                                     dataIndex*fold_size,(dataIndex+1)*fold_size)
                                     # start_index,end_index)
@@ -67,8 +67,7 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=300,
         for minibatch_index in xrange(n_train_batches):
             minibatch_avg_cost1 = r_train_fn(minibatch_index)
             c.append(minibatch_avg_cost1)
-        print 'fine-tuning epoch %d, cost ' % epoch
-        print numpy.mean(c)
+        print 'fine-tuning epoch %d, cost ' % epoch, numpy.mean(c)
     predict_y, origin_y = r_get_test_label()
     predict_y = change2PrimaryC(predict_y)
     origin_y = change2PrimaryC(origin_y)
@@ -124,8 +123,7 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=300,
         for minibatch_index in xrange(n_train_batches):
             minibatch_avg_cost1 = r_train_fn(minibatch_index)
             c.append(minibatch_avg_cost1)
-        print 'fine-tuning epoch %d, cost ' % epoch
-        print numpy.mean(c)
+        print 'fine-tuning epoch %d, cost ' % epoch,numpy.mean(c)
     r_sigmoid_layersT,r_outputT,r_paramsT = dbn2.getParams(shared_test_x)
     shared_x = theano.shared(numpy.asarray(Layers(),dtype=theano.config.floatX),borrow=True)
     shared_test_x = theano.shared(numpy.asarray(r_sigmoid_layersT(),dtype=theano.config.floatX),borrow=True)
@@ -151,8 +149,7 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=300,
         for minibatch_index in xrange(n_train_batches):
             minibatch_avg_cost1 = r_train_fn(minibatch_index)
             c.append(minibatch_avg_cost1)
-        print 'fine-tuning epoch %d, cost ' % epoch
-        print numpy.mean(c)
+        print 'fine-tuning epoch %d, cost ' % epoch,numpy.mean(c)
 
     predict_y, origin_y = r_get_test_label()
     predict_y = change2PrimaryC(predict_y)
@@ -191,8 +188,7 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=300,
         for minibatch_index in xrange(n_train_batches):
             minibatch_avg_cost1 = r_train_fn(minibatch_index)
             c.append(minibatch_avg_cost1)
-        print 'fine-tuning epoch %d, cost ' % epoch
-        print numpy.mean(c)
+        print 'fine-tuning epoch %d, cost ' % epoch,numpy.mean(c)
     predict_y, origin_y = r_get_test_label()
     predict_y = change2PrimaryC(predict_y)
     origin_y = change2PrimaryC(origin_y)
@@ -263,7 +259,7 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=300,
     print 'Finish all using  %.2f mins' % ((end_time - start_time) / 60.)
     print >>saveFile,'------------------------------------------------------------------------------'
     
-# trainTdbn(dataIndex=1)
-for ind in xrange(10):
-    print 'round ', ind
-    trainTdbn(dataIndex=ind)
+trainTdbn(dataIndex=1)
+# for ind in xrange(10):
+#     print 'round ', ind
+#     trainTdbn(dataIndex=ind)
