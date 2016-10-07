@@ -235,9 +235,10 @@ class RBM(object):
             # updates[self.hbias] = self.hbias + T.mean((detaH), axis=0)* T.cast(lr,dtype=theano.config.floatX)
         else:
             pre_sigmoid_th, th_mean, th_sample = self.sample_h_given_v(self.topic_input)
-            res_cost  = self.get_reconstruction_cost(self.topic_input, pre_sigmoid_rv)
-            cost = 0.05*self.get_reconstruction_cost(self.input, pre_sigmoid_rv) +\
-                    res_cost
+	    pre_sigmoid_trv, trv_mean = self.propdown(th_mean)
+            res_cost  = self.get_reconstruction_cost(th_mean, pre_sigmoid_ph)
+            cost = self.get_reconstruction_cost(self.input, pre_sigmoid_rv) +\
+                   0.01*res_cost
             #cost = (T.mean(self.free_energy(self.input)) - T.mean(self.free_energy(chain_end)))
             gparams = T.grad(cost, self.params)
             # constructs the update dictionary

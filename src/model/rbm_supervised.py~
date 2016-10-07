@@ -191,6 +191,8 @@ class RBM(object):
         # compute positive phase
         pre_sigmoid_ph, ph_mean, ph_sample = self.sample_h_given_v(self.input)
 
+        pre_sigmoid_rv, rv_mean = self.propdown(ph_mean)
+
         # decide how to initialize persistent chain:
         # for CD, we use the newly generate hidden sample
         # for PCD, we initialize from the old state of the chain
@@ -225,27 +227,42 @@ class RBM(object):
             for gparam, param in zip(gparams, self.params):
             # make sure that the learning rate is of the right dtype
                 updates[param] = param - gparam * T.cast(lr,dtype=theano.config.floatX)
+            # detaW = T.dot(self.input.transpose(),ph_mean) - T.dot(chain_end.transpose(),nh_means[-1])
+            # detaV = self.input - chain_end
+            # detaH = ph_mean - nh_means[-1]
+            # updates[self.W] = self.W + (detaW)* T.cast(lr,dtype=theano.config.floatX)
+            # updates[self.vbias] = self.vbias + T.mean((detaV), axis=0)* T.cast(lr,dtype=theano.config.floatX)
+            # updates[self.hbias] = self.hbias + T.mean((detaH), axis=0)* T.cast(lr,dtype=theano.config.floatX)
         else:
             pre_sigmoid_th, th_mean, th_sample = self.sample_h_given_v(self.topic_input)
-	    res_cost  = self.get_reconstruction_cost(th_sample, pre_sigmoid_ph)
-            cost = (T.mean(self.free_energy(self.input)) - T.mean(self.free_energy(chain_end))) + \
-                    0.1*res_cost
+	    pre_sigmoid_trv, trv_mean = self.propdown(th_mean)
+            res_cost  = self.get_reconstruction_cost(th_mean, pre_sigmoid_ph)
+            cost = 0.1*self.get_reconstruction_cost(self.input, pre_sigmoid_rv) +\
+                   res_cost
             #cost = (T.mean(self.free_energy(self.input)) - T.mean(self.free_energy(chain_end)))
-            gparams = T.grad(cost, self.params, consider_constant=[chain_end,res_cost])
+            gparams = T.grad(cost, self.params)
             # constructs the update dictionary
             for gparam, param in zip(gparams, self.params):
                 # make sure that the learning rate is of the right dtype
-                updates[param] = param - gparam * T.cast(lr,dtype=theano.config.floatX)
+                updates[param] = param + gparam * T.cast(lr,dtype=theano.config.floatX)
                 # 0.1*(T.mean(self.free_energy(self.topic_input)) - T.mean(self.free_energy(chain_end)))
-            #res_cost  = self.get_reconstruction_cost(th_mean, pre_sigmoid_ph)
-            #wparam = T.grad(res_cost, self.W)
-            #hparam = T.grad(res_cost, self.hbias)
-            #updates[self.W] = self.W + wparam * T.cast(lr,dtype=theano.config.floatX)
-            #updates[self.hbias] = self.hbias + hparam * T.cast(lr,dtype=theano.config.floatX)
-                # constructs the update dictionary
-                # updates[self.W] = self.W + 0.1*(T.dot(self.input.transpose(),ph_mean) - T.dot(chain_end.transpose(),nh_means[-1]))
-                # updates[self.vbias] = self.vbias + 0.1*T.mean((self.input - chain_end), axis=0)
-                # updates[self.hbias] = self.hbias + 0.1*T.mean((ph_mean - nh_means[-1]), axis=0)
+            # cost  = self.get_reconstruction_cost(self.topic_input, pre_sigmoid_rv)
+            # wparam = T.grad(cost, self.W)
+            # hparam = T.grad(cost, self.hbias)
+            # vparam = T.grad(cost, self.vbias)
+            # updates[self.W] = self.W - wparam * T.cast(lr,dtype=theano.config.floatX)
+            # updates[self.hbias] = self.hbias - hparam * T.cast(lr,dtype=theano.config.floatX)
+            # updates[self.vbias] = self.vbias - vparam * T.cast(lr,dtype=theano.config.floatX)
+            #     # constructs the update dictionary
+            # detaW = T.dot(self.input.transpose(),ph_mean) - T.dot(chain_end.transpose(),nh_means[-1])
+            # detaV = self.input - chain_end
+            # detaH = ph_mean - nh_means[-1]
+            # # detaTW = T.dot(self.topic_input.transpose(),th_mean) - T.dot(chain_end.transpose(),nh_means[-1])
+            # # detaTV = self.topic_input - chain_end
+            # # detaTH = th_mean - nh_means[-1]
+            # updates[self.W] = self.W + (detaW)* T.cast(lr,dtype=theano.config.floatX)
+            # updates[self.vbias] = self.vbias + T.mean((detaV), axis=0)* T.cast(lr,dtype=theano.config.floatX)
+            # updates[self.hbias] = self.hbias + T.mean((detaH ), axis=0)* T.cast(lr,dtype=theano.config.floatX)
                 # cost = self.get_reconstruction_cost(th_mean, chain_end_nh)
                 # gparam = T.grad(cost, self.W, consider_constant=[chain_end_nh])
                 # updates[self.W] = self.W + gparam * 0.1
@@ -260,7 +277,7 @@ class RBM(object):
             # reconstruction cross-entropy is a better proxy for CD
             monitoring_cost = self.get_reconstruction_cost(self.input, pre_sigmoid_nvs[-1])
 
-        return cost, updates
+        return monitoring_cost, cost, updates
         # return cost, updates
 
     def get_pseudo_likelihood_cost(self, updates):
