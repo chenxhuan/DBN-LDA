@@ -19,13 +19,13 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=200,
               pretrain_lr=0.1,k=1,training_epochs=200,batch_size=10,dataIndex=0, lamda=0.05):
     
     start_time = time.time()
-    filepath = "../../dataset/features/annotation1000_20160927"
-    #filepath = "../../dataset/features/mixed_2015-03-25"
+    # filepath = "../../dataset/features/annotation1000_20160927"
+    filepath = "../../dataset/features/mixed_5_20161007"
     saveFile = file("../../output/result2.txt",'a')
     print >> saveFile, 'round ', dataIndex, 'lamda ', lamda
     start_index = 0
     end_index = 116
-    fold_size = 100
+    fold_size = 116
     (train_set_x,train_set_y,train_x,train_y),(test_set_x,test_set_y,test_x,test_y) = Rdata_load(filepath,
                                     dataIndex*fold_size,(dataIndex+1)*fold_size)
                                     # start_index,end_index)
