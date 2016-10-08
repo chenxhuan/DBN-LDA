@@ -44,6 +44,7 @@ def process(inputFile, saveFile):
     for line in lines:
         res_line = ''
         tmp = line.split('\t')
+        # print tmp[0].strip().split(';')[0].encode("utf-8")
         labelNo = labels[tmp[0].strip().split(';')[0].encode("utf-8")]
         res_line += labelNo + '\t'
         segs = jieba.cut(re.sub(r.decode('utf8'), u' '.decode('utf8'), tmp[1]).strip())
@@ -61,7 +62,7 @@ if __name__ == "__main__":
     if len(sys.argv) != 2:
         start = time.time()
         date = time.strftime('%Y%m%d',time.localtime(time.time()))
-        inputFile = '../../dataset/originalData/annotation1000.txt'
+        inputFile = '../../dataset/originalData/zzcxhg.txt'
         saveFile = '../../dataset/wordSegmentation/'+inputFile.split('/')[-1].split('.txt')[0]+ '_'+date
         process(inputFile, saveFile)
         end = time.time()

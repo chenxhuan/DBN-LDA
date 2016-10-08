@@ -35,6 +35,8 @@ def process(inputFile, saveFile, topN):
     binaryFL = []
     wordVec = []
     for line in lines:
+        if len(line.split('\t')) < 2:
+            continue
         binaryF = ''
         label  = line.split('\t')[0]
         segs = line.split('\t')[1].strip()
@@ -68,7 +70,7 @@ if __name__ == "__main__":
     if len(sys.argv) != 3:
         start = time.time()
         # date = time.strftime('%Y%m%d',time.localtime(time.time()))
-        inputFile = '../../dataset/wordSegmentation/annotation1000_20160927'
+        inputFile = '../../dataset/wordSegmentation/zzcxhg_20161007'
         saveFile = '../../dataset/features/'+inputFile.split('/')[-1].split('.txt')[0]
         process(inputFile, saveFile,123)
         end = time.time()

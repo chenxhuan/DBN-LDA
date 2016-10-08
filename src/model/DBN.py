@@ -13,10 +13,11 @@ from rbm_supervised import *
 from preprocess.preprocess_data import *
 
 class DBN(object):
-    def __init__(self,theano_rng=None,n_ins=1000, topic_supervised=None,
+    def __init__(self,theano_rng=None,n_ins=1000, supervised_type=None,
                  hidden_layers_sizes=[594,594,594],n_outs=40):
         self.n_ins = n_ins
         self.n_outs = n_outs
+        self.supervised_type = supervised_type
         self.sigmoid_layers = []
         self.sigmoid_topic_layers = []
         self.rbm_layers = []
@@ -55,20 +56,29 @@ class DBN(object):
             self.sigmoid_layers.append(sigmoid_layer)
             self.sigmoid_topic_layers.append(sigmoid_topic_layer)
             self.params.extend(sigmoid_layer.params)
-            if not topic_supervised:
+            if supervised_type==None:
                 rbm_layer = RBM(numpy_rng=numpy_rng,theano_rng=theano_rng,
                                 input=layer_input,
                                 n_visible=input_size,
                                 n_hidden=hidden_layers_sizes[i],
                                 W=sigmoid_layer.W,
                                 hbias=sigmoid_layer.b)
-            else:
+            if supervised_type==1:
                 rbm_layer = RBM(numpy_rng=numpy_rng,theano_rng=theano_rng, topic_input=topic_input,
                             input=layer_input,
                             n_visible=input_size,
                             n_hidden=hidden_layers_sizes[i],
                             W=sigmoid_layer.W,
                             hbias=sigmoid_layer.b)
+            if supervised_type==2:
+                rbm_layer = RBM(numpy_rng=numpy_rng,theano_rng=theano_rng,
+                                input=layer_input,
+                                n_visible=input_size,
+                                n_hidden=hidden_layers_sizes[i],
+                                W=sigmoid_layer.W,
+                                hbias=sigmoid_layer.b,
+                                n_out=self.n_outs,
+                                y=self.y)
             self.rbm_layers.append(rbm_layer)
         self.getLayerOutput = self.sigmoid_layers[-1].Output()
         
@@ -81,28 +91,38 @@ class DBN(object):
         self.feature = self.logLayer.getFeature()
         
     
-    def pretraining_function(self,train_set_x=None,topic_set=None, batch_size=None,k=1):
+    def pretraining_function(self,train_set_x=None,supervised_set=None, batch_size=None,k=1):
         
         index = T.lscalar('index')
         learning_rate = T.scalar('lr')
-        
+        lamda = T.scalar('ld')
+
         n_batches = train_set_x.get_value(borrow=True).shape[0]/batch_size
         batch_begin = index*batch_size
         batch_end = batch_begin + batch_size
 
         pretrain_fns = []
         for rbm in self.rbm_layers:
-            monitoring_cost, cost,updates = rbm.get_cost_updates(learning_rate,persistent=None,k=k)
-            if not topic_set:
-                fn = theano.function(inputs=[index,theano.Param(learning_rate,default=0.1)],
+            monitoring_cost, cost,updates = rbm.get_cost_updates(learning_rate,persistent=None,k=k,type=self.supervised_type, lamda=lamda)
+            if self.supervised_type==None:
+                print 'training DBN'
+                fn = theano.function(inputs=[index,learning_rate],
                                  outputs = [monitoring_cost, cost],
                                  updates = updates,
                                  givens = {self.x:train_set_x[batch_begin:batch_end]})
-            if topic_set:
-                fn = theano.function(inputs=[index,theano.Param(learning_rate,default=0.1)],
+            if self.supervised_type == 1:
+                print 'training domain supervised DBN'
+                fn = theano.function(inputs=[index,learning_rate,lamda],
                                      outputs = [monitoring_cost, cost],
                                      updates = updates,
-                                     givens = {self.x:train_set_x[batch_begin:batch_end], self.topic:topic_set[batch_begin:batch_end]})
+                                     givens = {self.x:train_set_x[batch_begin:batch_end], self.topic:supervised_set[batch_begin:batch_end]})
+                                     # givens = {self.x:train_set_x[batch_begin:batch_end]})
+            if self.supervised_type == 2:
+                print 'training label supervised DBN'
+                fn = theano.function(inputs=[index,learning_rate,lamda],
+                                     outputs = [monitoring_cost, cost],
+                                     updates = updates,
+                                     givens = {self.x:train_set_x[batch_begin:batch_end], self.y: supervised_set[batch_begin:batch_end]})
                                      # givens = {self.x:train_set_x[batch_begin:batch_end]})
             pretrain_fns.append(fn)
         getLayers = theano.function([index], self.getLayerOutput,

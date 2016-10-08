@@ -7,11 +7,12 @@ Created on 2016-9-20
 import numpy, theano
 from theano.tensor.shared_randomstreams import RandomStreams
 import theano.tensor as T
+from preprocess.preprocess_data import LogisticRegression
 
 class RBM(object):
     """Restricted Boltzmann Machine (RBM)  """
     def __init__(self, input=None, topic_input=None, n_visible=1065, n_hidden=100, \
-        W=None, hbias=None, vbias=None, numpy_rng=None,
+        W=None, hbias=None, vbias=None, numpy_rng=None, n_out=None, y = T.ivector('y'),
         theano_rng=None):
         """
         RBM constructor. Defines the parameters of the model along with
@@ -39,7 +40,7 @@ class RBM(object):
 
         self.n_visible = n_visible
         self.n_hidden = n_hidden
-
+        self.n_out = n_out
         if numpy_rng is None:
             # create a number generator
             numpy_rng = numpy.random.RandomState(1234)
@@ -76,15 +77,23 @@ class RBM(object):
         # initialize input layer for standalone RBM or layer0 of DBN
         self.topic_input=topic_input
         self.input = input
+        self.y = y
         if not input:
             self.input = T.matrix('input')
         self.W = W
         self.hbias = hbias
         self.vbias = vbias
         self.theano_rng = theano_rng
+
+
         # **** WARNING: It is not a good idea to put things in this list
         # other than shared variables created in this function.
         self.params = [self.W, self.hbias, self.vbias]
+        if self.n_out is not None:
+            self.output = T.nnet.sigmoid(T.dot(self.input,self.W)+self.hbias)
+            self.logLabelLayer = LogisticRegression(self.output, n_in=n_hidden,n_out=self.n_out)
+            self.labelSupervised_cost = self.logLabelLayer.negative_log_likelihood(self.y)
+            self.params.extend(self.logLabelLayer.params)
 
     def free_energy(self, v_sample):
         ''' Function to compute the free energy '''
@@ -170,7 +179,7 @@ class RBM(object):
         return [pre_sigmoid_h1, h1_mean, h1_sample,
                 pre_sigmoid_v1, v1_mean, v1_sample]
 
-    def get_cost_updates(self, lr=0.1, persistent=None, k=1):
+    def get_cost_updates(self, lr=0.1, persistent=None, k=1, type=None, lamda =0.01):
         """This functions implements one step of CD-k or PCD-k
 
         :param lr: learning rate used to train the RBM
@@ -187,7 +196,6 @@ class RBM(object):
         chain, if one is used.
 
         """
-
         # compute positive phase
         pre_sigmoid_ph, ph_mean, ph_sample = self.sample_h_given_v(self.input)
 
@@ -220,7 +228,7 @@ class RBM(object):
         # not that we only need the sample at the end of the chain
         chain_end = nv_samples[-1]
         chain_end_nh = pre_sigmoid_nhs[-1]
-        if not self.topic_input:
+        if type==None:
             cost = T.mean(self.free_energy(self.input)) - T.mean(self.free_energy(chain_end))
             gparams = T.grad(cost, self.params, consider_constant=[chain_end])
             # constructs the update dictionary
@@ -233,12 +241,12 @@ class RBM(object):
             # updates[self.W] = self.W + (detaW)* T.cast(lr,dtype=theano.config.floatX)
             # updates[self.vbias] = self.vbias + T.mean((detaV), axis=0)* T.cast(lr,dtype=theano.config.floatX)
             # updates[self.hbias] = self.hbias + T.mean((detaH), axis=0)* T.cast(lr,dtype=theano.config.floatX)
-        else:
+        if type==1:
             pre_sigmoid_th, th_mean, th_sample = self.sample_h_given_v(self.topic_input)
-	    pre_sigmoid_trv, trv_mean = self.propdown(th_mean)
+            pre_sigmoid_trv, trv_mean = self.propdown(th_mean)
             res_cost  = self.get_reconstruction_cost(th_mean, pre_sigmoid_ph)
-            cost = self.get_reconstruction_cost(self.input, pre_sigmoid_rv) +\
-                   0.01*res_cost
+            cost = self.get_reconstruction_cost(self.input, pre_sigmoid_rv) + \
+                    T.cast(lamda,dtype=theano.config.floatX)*res_cost
             #cost = (T.mean(self.free_energy(self.input)) - T.mean(self.free_energy(chain_end)))
             gparams = T.grad(cost, self.params)
             # constructs the update dictionary
@@ -266,7 +274,13 @@ class RBM(object):
                 # cost = self.get_reconstruction_cost(th_mean, chain_end_nh)
                 # gparam = T.grad(cost, self.W, consider_constant=[chain_end_nh])
                 # updates[self.W] = self.W + gparam * 0.1
-
+        if type==2:
+            cost = self.get_reconstruction_cost(self.input, pre_sigmoid_rv) - \
+                   self.labelSupervised_cost*T.cast(lamda,dtype=theano.config.floatX)
+            gparams = T.grad(cost, self.params)
+            for gparam, param in zip(gparams, self.params):
+                # make sure that the learning rate is of the right dtype
+                updates[param] = param + gparam * T.cast(lr,dtype=theano.config.floatX)
 
         if persistent:
             # Note that this works only if persistent is a shared variable

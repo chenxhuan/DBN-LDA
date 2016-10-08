@@ -16,13 +16,13 @@ from sklearn.linear_model import LogisticRegression as LR, Perceptron
 from sklearn import tree
 
 def trainTdbn(finetune_lr=0.1,pretraining_epochs=200,
-              pretrain_lr=0.1,k=1,training_epochs=200,batch_size=10,dataIndex=0):
+              pretrain_lr=0.1,k=1,training_epochs=200,batch_size=10,dataIndex=0, lamda=0.05):
     
     start_time = time.time()
     filepath = "../../dataset/features/annotation1000_20160927"
     #filepath = "../../dataset/features/mixed_2015-03-25"
     saveFile = file("../../output/result2.txt",'a')
-    print >> saveFile, 'round ', dataIndex
+    print >> saveFile, 'round ', dataIndex, 'lamda ', lamda
     start_index = 0
     end_index = 116
     fold_size = 100
@@ -44,15 +44,15 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=200,
     n_out = 26
 
     print '..... building the topic supervised DBN'
-    tDBN = DBN(n_ins=1188,topic_supervised=True, hidden_layers_sizes=[594,594,594],n_outs=n_out)
+    tDBN = DBN(n_ins=1188,supervised_type=1, hidden_layers_sizes=[594,594,594],n_outs=n_out)
 
-    pretrainingR_fns,Layers = tDBN.pretraining_function(train_set_x=train_set_x,topic_set=topic_sets, batch_size=batch_size, k=k)
+    pretrainingR_fns,Layers = tDBN.pretraining_function(train_set_x=train_set_x,supervised_set=topic_sets, batch_size=batch_size, k=k)
 
     for i in xrange(tDBN.n_layers):
-        for epoch in xrange(pretraining_epochs):
+        for epoch in xrange(pretraining_epochs if i is not 1 else 2*pretraining_epochs):
             c = []
             for batch_index in xrange(n_train_batches):
-                c.append(pretrainingR_fns[i](index=batch_index,lr=pretrain_lr))
+                c.append(pretrainingR_fns[i](index=batch_index,lr=pretrain_lr, ld=lamda))
             print 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
             print numpy.mean(c,axis=0)
     end_time = time.time()
@@ -78,14 +78,14 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=200,
     print 'test results from topic supervised DBN, presion, recall, F1, accuracy: '
     print evaluation(predict_y, origin_y),getAccuracy(predict_y, origin_y)
 
-    print '..... building the dual supervised DBN'
-    dbn1 = DBN(n_ins=1188, hidden_layers_sizes=[594],n_outs=n_out)
-    pretrainingR_fns,Layers = dbn1.pretraining_function(train_set_x=train_set_x, batch_size=batch_size, k=k)
+    print '..... building the label supervised DBN'
+    dbn1 = DBN(n_ins=1188,supervised_type=2, hidden_layers_sizes=[594,594,594],n_outs=n_out)
+    pretrainingR_fns,Layers = dbn1.pretraining_function(train_set_x=train_set_x, supervised_set=train_set_y, batch_size=batch_size, k=k)
     for i in xrange(dbn1.n_layers):
-        for epoch in xrange(pretraining_epochs):
+        for epoch in xrange(pretraining_epochs if i is not 1 else 2*pretraining_epochs):
             c = []
             for batch_index in xrange(n_train_batches):
-                c.append(pretrainingR_fns[i](index=batch_index,lr=pretrain_lr))
+                c.append(pretrainingR_fns[i](index=batch_index,lr=pretrain_lr, ld=1))
             print 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
             print numpy.mean(c,axis=0)
     end_time = time.time()
@@ -96,69 +96,20 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=200,
     epoch = 0
     while (epoch < training_epochs):
         epoch = epoch + 1
-        for minibatch_index in xrange(n_train_batches):
-            minibatch_avg_cost1 = r_train_fn(minibatch_index)
-    r_sigmoid_layersT,r_outputT,r_paramsT = dbn1.getParams(test_set_x)
-    shared_x = theano.shared(numpy.asarray(Layers(),dtype=theano.config.floatX),borrow=True)
-    shared_test_x = theano.shared(numpy.asarray(r_sigmoid_layersT(),dtype=theano.config.floatX),borrow=True)
-    tmp_datasets = [(shared_x,train_set_y),(shared_test_x,test_set_y)]
-    dbn2 = DBN(n_ins=594, hidden_layers_sizes=[594],n_outs=n_out)
-    pretrainingR_fns,Layers = dbn2.pretraining_function(train_set_x=shared_x, batch_size=batch_size, k=k)
-    for i in xrange(dbn2.n_layers):
-        for epoch in xrange(pretraining_epochs):
-            c = []
-            for batch_index in xrange(n_train_batches):
-                c.append(pretrainingR_fns[i](index=batch_index,lr=pretrain_lr))
-            print 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
-            print numpy.mean(c,axis=0)
-    end_time = time.time()
-    print 'Training ran for %.2f mins' % ((end_time - start_time) / 60.)
-    r_train_fn, r_test_score, r_get_test_label, r_features, Layers = dbn2.build_finetune_functions(
-        datasets=tmp_datasets, batch_size=batch_size,
-        learning_rate=finetune_lr)
-    epoch = 0
-    while (epoch < training_epochs):
-        epoch = epoch + 1
         c = []
         for minibatch_index in xrange(n_train_batches):
             minibatch_avg_cost1 = r_train_fn(minibatch_index)
             c.append(minibatch_avg_cost1)
-        print 'fine-tuning epoch %d, cost ' % epoch,numpy.mean(c)
-    r_sigmoid_layersT,r_outputT,r_paramsT = dbn2.getParams(shared_test_x)
-    shared_x = theano.shared(numpy.asarray(Layers(),dtype=theano.config.floatX),borrow=True)
-    shared_test_x = theano.shared(numpy.asarray(r_sigmoid_layersT(),dtype=theano.config.floatX),borrow=True)
-    tmp_datasets = [(shared_x,train_set_y),(shared_test_x,test_set_y)]
-    dbn3 = DBN(n_ins=594, hidden_layers_sizes=[594],n_outs=n_out)
-    pretrainingR_fns,Layers = dbn3.pretraining_function(train_set_x=shared_x, batch_size=batch_size, k=k)
-    for i in xrange(dbn3.n_layers):
-        for epoch in xrange(pretraining_epochs):
-            c = []
-            for batch_index in xrange(n_train_batches):
-                c.append(pretrainingR_fns[i](index=batch_index,lr=pretrain_lr))
-            print 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
-            print numpy.mean(c,axis=0)
-    end_time = time.time()
-    print 'Training ran for %.2f mins' % ((end_time - start_time) / 60.)
-    r_train_fn, r_test_score, r_get_test_label, r_features, Layers = dbn3.build_finetune_functions(
-        datasets=tmp_datasets, batch_size=batch_size,
-        learning_rate=finetune_lr)
-    epoch = 0
-    while (epoch < training_epochs):
-        epoch = epoch + 1
-        c = []
-        for minibatch_index in xrange(n_train_batches):
-            minibatch_avg_cost1 = r_train_fn(minibatch_index)
-            c.append(minibatch_avg_cost1)
-        print 'fine-tuning epoch %d, cost ' % epoch,numpy.mean(c)
+        print 'fine-tuning epoch %d, cost ' % epoch, numpy.mean(c)
 
     predict_y, origin_y = r_get_test_label()
     predict_y = change2PrimaryC(predict_y)
     origin_y = change2PrimaryC(origin_y)
-    print 'test results from dual supervised DBN , presion, recall, F1, accuracy: '
+    print 'test results from label supervised DBN , presion, recall, F1, accuracy: '
     # print >> saveFile,'test results from dual supervised DBN, presion, recall, F1, accuracy: '
     resutl = evaluation(predict_y, origin_y)
     print >> saveFile,resutl[0],'\t',resutl[1],'\t',resutl[2],'\t',getAccuracy(predict_y, origin_y)
-    print 'test results from dual supervised DBN, presion, recall, F1, accuracy: '
+    print 'test results from label supervised DBN, presion, recall, F1, accuracy: '
     print evaluation(predict_y, origin_y),getAccuracy(predict_y, origin_y)
 
 
@@ -170,7 +121,7 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=200,
     pretrainingR_fns,Layers = rDBN.pretraining_function(train_set_x=train_set_x, batch_size=batch_size, k=k)
 
     for i in xrange(rDBN.n_layers):
-        for epoch in xrange(pretraining_epochs):
+        for epoch in xrange(pretraining_epochs if i is not 1 else 2*pretraining_epochs):
             c = []
             for batch_index in xrange(n_train_batches):
                 c.append(pretrainingR_fns[i](index=batch_index,lr=pretrain_lr))
@@ -199,7 +150,7 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=200,
     print 'second results from  DBN , presion, recall, F1, accuracy: '
     print evaluation(predict_y, origin_y),getAccuracy(predict_y, origin_y)
 
- 
+
     print 'third results from GNaiveBayes , presion, recall, F1, accuracy: '
     # print  >> saveFile,'third results from GNaiveBayes , presion, recall, F1, accuracy: '
     nb = GaussianNB()
@@ -212,11 +163,11 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=200,
     test_y = change2PrimaryC(test_y)
     resutl = evaluation(nbResult, test_y)
     print >> saveFile,resutl[0],'\t',resutl[1],'\t',resutl[2],'\t',getAccuracy(nbResult, test_y)
-      
+
     print 'fourth results from SVM, presion,recall,F1,accuracy'
     # print >> saveFile,'fourth results from SVM, presion,recall,F1,accuracy'
-      
-      
+
+
     filepath1=unicode(filepath,'utf8')
     y, x = svm_read_dataset(filepath1)
     trainX = x[:dataIndex*fold_size]+x[(dataIndex+1)*fold_size:]
@@ -227,7 +178,7 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=200,
     # trainY = y[:start_index]+y[end_index:]
     # testX = x[start_index:end_index]
     # testY = y[start_index:end_index]
-     
+
     m = svm_train(trainY, trainX, '-c 10')
     p_label, p_acc, p_val = svm_predict(testY,testX, m)
     p_label = change2PrimaryC(p_label)
@@ -258,8 +209,12 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=200,
     print >> saveFile,'Finish all using  %.2f mins' % ((end_time - start_time) / 60.)
     print 'Finish all using  %.2f mins' % ((end_time - start_time) / 60.)
     print >>saveFile,'------------------------------------------------------------------------------'
-    
-#trainTdbn(dataIndex=1)
+
+# lds = [1,0.5,0.1,0.05,0.01,0.001]
+# for ld in lds:
+#     print 'ld ', ld
+#     trainTdbn(dataIndex=7,lamda=ld)
+# trainTdbn(dataIndex=1)
 for ind in xrange(10):
     print 'round ', ind
     trainTdbn(dataIndex=ind)
