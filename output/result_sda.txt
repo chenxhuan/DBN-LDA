@@ -1,0 +1,20 @@
+first results from sda , precision, recall, F1, accuracy: 
+(0.34874338624338624, 0.41116352201257861, 0.37738980237859471) 0.53
+first results from sda , precision, recall, F1, accuracy: 
+(0.48733921815889031, 0.52162698412698405, 0.50390049942029314) 0.62
+first results from sda , precision, recall, F1, accuracy: 
+(0.30542495796733088, 0.44617117117117111, 0.36261977920878286) 0.61
+first results from sda , precision, recall, F1, accuracy: 
+(0.49046345811051695, 0.49009208384208386, 0.49027770064940845) 0.62
+first results from sda , precision, recall, F1, accuracy: 
+(0.56037851037851039, 0.80540486236688758, 0.66091239069272278) 0.78
+first results from sda , precision, recall, F1, accuracy: 
+(0.62608689231496262, 0.61749557043674685, 0.62176155469022043) 0.58
+first results from sda , precision, recall, F1, accuracy: 
+(0.47586419753086417, 0.48894022644022644, 0.48231360204150364) 0.53
+first results from sda , precision, recall, F1, accuracy: 
+(0.66425785367910606, 0.60312952767313821, 0.632219527253292) 0.65
+first results from sda , precision, recall, F1, accuracy: 
+(0.48024193548387101, 0.52484472049689446, 0.50155365788627781) 0.56
+first results from sda , precision, recall, F1, accuracy: 
+(0.66458627190334507, 0.67426287163129262, 0.66938960271096659) 0.73
