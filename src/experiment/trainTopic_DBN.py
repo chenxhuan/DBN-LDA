@@ -7,10 +7,10 @@ Created on Nov 11, 2014
 import os,numpy,theano,cPickle,sys,time, sklearn
 sys.path.append("..")
 import theano.tensor as T
-from preprocess.preprocess_data import *
-from model.DBN import *
+from src.preprocess.preprocess_data import *
+from src.model.DBN import *
 from evaluation import *
-from model.svmutil import *
+from src.model.svmutil import *
 from sklearn.naive_bayes import GaussianNB
 from sklearn.linear_model import LogisticRegression as LR, Perceptron
 from sklearn import tree
