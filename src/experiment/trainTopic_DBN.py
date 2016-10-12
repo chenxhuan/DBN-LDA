@@ -20,12 +20,12 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=200,
     
     start_time = time.time()
     # filepath = "../../dataset/features/annotation1000_20160927"
-    filepath = "../../dataset/features/mixed_5_20161007"
+    filepath = "../../dataset/features/zzcxhg_20161007"
     saveFile = file("../../output/result2.txt",'a')
     print >> saveFile, 'round ', dataIndex, 'lamda ', lamda
     start_index = 0
     end_index = 116
-    fold_size = 116
+    fold_size = 1568
     (train_set_x,train_set_y,train_x,train_y),(test_set_x,test_set_y,test_x,test_y) = Rdata_load(filepath,
                                     dataIndex*fold_size,(dataIndex+1)*fold_size)
                                     # start_index,end_index)
@@ -213,8 +213,8 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=200,
 # lds = [1,0.5,0.1,0.05,0.01,0.001]
 # for ld in lds:
 #     print 'ld ', ld
-#     trainTdbn(dataIndex=7,lamda=ld)
-# trainTdbn(dataIndex=1)
+#     trainTdbn(dataIndex=2,lamda=ld)
+# trainTdbn(dataIndex=8)
 for ind in xrange(10):
     print 'round ', ind
     trainTdbn(dataIndex=ind)
