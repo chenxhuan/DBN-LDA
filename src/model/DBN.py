@@ -10,7 +10,7 @@ import theano.tensor as T
 from theano import *
 from theano.tensor.shared_randomstreams import RandomStreams
 from rbm_supervised import *
-from preprocess.preprocess_data import *
+from src.preprocess.preprocess_data import *
 
 class DBN(object):
     def __init__(self,theano_rng=None,n_ins=1000, supervised_type=None,

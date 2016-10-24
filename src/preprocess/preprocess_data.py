@@ -217,16 +217,17 @@ class LogisticRegression(object):
         
     def negative_log_likelihood(self,y):
         return -T.mean(T.log(self.p_y_given_x)[T.arange(y.shape[0]),y])
+
     def errors(self,y):
         # check if y has same dimension of y_pred
         if y.ndim != self.y_pred.ndim:
             raise TypeError('y should have the same shape as self.y_pred',
-                ('y', target.type, 'y_pred', self.y_pred.type))
+                ('y', y.type, 'y_pred', self.y_pred.type))
         # check if y is of the correct datatype
         if y.dtype.startswith('int'):
             # the T.neq operator returns a vector of 0s and 1s, where 1
             # represents a mistake in prediction
-            return 1-T.mean(T.neq(self.y_pred, y))
+            return self.y_pred, y, T.mean(T.neq(self.y_pred, y))
         else:
             raise NotImplementedError() 
     def getLabel(self,y):

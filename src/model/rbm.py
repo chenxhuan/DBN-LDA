@@ -300,9 +300,8 @@ class RBM(object):
 
         return cross_entropy
 
-    
-        
-        
-        
-        
-        
+
+
+
+
+
