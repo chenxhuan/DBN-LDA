@@ -43,74 +43,74 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=200,
     n_train_batches = train_set_x.get_value(borrow=True).shape[0]/batch_size
     n_out = 26
 
-    print '..... building the topic supervised DBN'
-    tDBN = DBN(n_ins=1188,supervised_type=1, hidden_layers_sizes=[594,594,594],n_outs=n_out)
-
-    pretrainingR_fns,Layers = tDBN.pretraining_function(train_set_x=train_set_x,supervised_set=topic_sets, batch_size=batch_size, k=k)
-
-    for i in xrange(tDBN.n_layers):
-        for epoch in xrange(pretraining_epochs if i is not 1 else 2*pretraining_epochs):
-            c = []
-            for batch_index in xrange(n_train_batches):
-                c.append(pretrainingR_fns[i](index=batch_index,lr=pretrain_lr, ld=lamda))
-            print 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
-            print numpy.mean(c,axis=0)
-    end_time = time.time()
-    print 'Training ran for %.2f mins' % ((end_time - start_time) / 60.)
-    r_train_fn, r_test_score, r_get_test_label, r_features, Layers = tDBN.build_finetune_functions(
-        datasets=r_datasets, batch_size=batch_size,
-        learning_rate=finetune_lr)
-    epoch = 0
-    while (epoch < training_epochs):
-        epoch = epoch + 1
-        c = []
-        for minibatch_index in xrange(n_train_batches):
-            minibatch_avg_cost1 = r_train_fn(minibatch_index)
-            c.append(minibatch_avg_cost1)
-        print 'fine-tuning epoch %d, cost ' % epoch, numpy.mean(c)
-    predict_y, origin_y = r_get_test_label()
-    predict_y = change2PrimaryC(predict_y)
-    origin_y = change2PrimaryC(origin_y)
-    print 'test results from topic supervised DBN , presion, recall, F1, accuracy: '
-    # print >> saveFile,'test results from topic supervised DBN, presion, recall, F1, accuracy: '
-    resutl = evaluation(predict_y, origin_y)
-    print >> saveFile,resutl[0],'\t',resutl[1],'\t',resutl[2],'\t',getAccuracy(predict_y, origin_y)
-    print 'test results from topic supervised DBN, presion, recall, F1, accuracy: '
-    print evaluation(predict_y, origin_y),getAccuracy(predict_y, origin_y)
-
-    print '..... building the label supervised DBN'
-    dbn1 = DBN(n_ins=1188,supervised_type=2, hidden_layers_sizes=[594,594,594],n_outs=n_out)
-    pretrainingR_fns,Layers = dbn1.pretraining_function(train_set_x=train_set_x, supervised_set=train_set_y, batch_size=batch_size, k=k)
-    for i in xrange(dbn1.n_layers):
-        for epoch in xrange(pretraining_epochs if i is not 1 else 2*pretraining_epochs):
-            c = []
-            for batch_index in xrange(n_train_batches):
-                c.append(pretrainingR_fns[i](index=batch_index,lr=pretrain_lr, ld=1))
-            print 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
-            print numpy.mean(c,axis=0)
-    end_time = time.time()
-    print 'Training ran for %.2f mins' % ((end_time - start_time) / 60.)
-    r_train_fn, r_test_score, r_get_test_label, r_features, Layers = dbn1.build_finetune_functions(
-        datasets=r_datasets, batch_size=batch_size,
-        learning_rate=finetune_lr)
-    epoch = 0
-    while (epoch < training_epochs):
-        epoch = epoch + 1
-        c = []
-        for minibatch_index in xrange(n_train_batches):
-            minibatch_avg_cost1 = r_train_fn(minibatch_index)
-            c.append(minibatch_avg_cost1)
-        print 'fine-tuning epoch %d, cost ' % epoch, numpy.mean(c)
-
-    predict_y, origin_y = r_get_test_label()
-    predict_y = change2PrimaryC(predict_y)
-    origin_y = change2PrimaryC(origin_y)
-    print 'test results from label supervised DBN , presion, recall, F1, accuracy: '
-    # print >> saveFile,'test results from dual supervised DBN, presion, recall, F1, accuracy: '
-    resutl = evaluation(predict_y, origin_y)
-    print >> saveFile,resutl[0],'\t',resutl[1],'\t',resutl[2],'\t',getAccuracy(predict_y, origin_y)
-    print 'test results from label supervised DBN, presion, recall, F1, accuracy: '
-    print evaluation(predict_y, origin_y),getAccuracy(predict_y, origin_y)
+    # print '..... building the topic supervised DBN'
+    # tDBN = DBN(n_ins=1188,supervised_type=1, hidden_layers_sizes=[594,594,594],n_outs=n_out)
+    #
+    # pretrainingR_fns,Layers = tDBN.pretraining_function(train_set_x=train_set_x,supervised_set=topic_sets, batch_size=batch_size, k=k)
+    #
+    # for i in xrange(tDBN.n_layers):
+    #     for epoch in xrange(pretraining_epochs if i is not 1 else 2*pretraining_epochs):
+    #         c = []
+    #         for batch_index in xrange(n_train_batches):
+    #             c.append(pretrainingR_fns[i](index=batch_index,lr=pretrain_lr, ld=lamda))
+    #         print 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
+    #         print numpy.mean(c,axis=0)
+    # end_time = time.time()
+    # print 'Training ran for %.2f mins' % ((end_time - start_time) / 60.)
+    # r_train_fn, r_test_score, r_get_test_label, r_features, Layers = tDBN.build_finetune_functions(
+    #     datasets=r_datasets, batch_size=batch_size,
+    #     learning_rate=finetune_lr)
+    # epoch = 0
+    # while (epoch < training_epochs):
+    #     epoch = epoch + 1
+    #     c = []
+    #     for minibatch_index in xrange(n_train_batches):
+    #         minibatch_avg_cost1 = r_train_fn(minibatch_index)
+    #         c.append(minibatch_avg_cost1)
+    #     print 'fine-tuning epoch %d, cost ' % epoch, numpy.mean(c)
+    # predict_y, origin_y = r_get_test_label()
+    # predict_y = change2PrimaryC(predict_y)
+    # origin_y = change2PrimaryC(origin_y)
+    # print 'test results from topic supervised DBN , presion, recall, F1, accuracy: '
+    # # print >> saveFile,'test results from topic supervised DBN, presion, recall, F1, accuracy: '
+    # resutl = evaluation(predict_y, origin_y)
+    # print >> saveFile,resutl[0],'\t',resutl[1],'\t',resutl[2],'\t',getAccuracy(predict_y, origin_y)
+    # print 'test results from topic supervised DBN, presion, recall, F1, accuracy: '
+    # print evaluation(predict_y, origin_y),getAccuracy(predict_y, origin_y)
+    #
+    # print '..... building the label supervised DBN'
+    # dbn1 = DBN(n_ins=1188,supervised_type=2, hidden_layers_sizes=[594,594,594],n_outs=n_out)
+    # pretrainingR_fns,Layers = dbn1.pretraining_function(train_set_x=train_set_x, supervised_set=train_set_y, batch_size=batch_size, k=k)
+    # for i in xrange(dbn1.n_layers):
+    #     for epoch in xrange(pretraining_epochs if i is not 1 else 2*pretraining_epochs):
+    #         c = []
+    #         for batch_index in xrange(n_train_batches):
+    #             c.append(pretrainingR_fns[i](index=batch_index,lr=pretrain_lr, ld=1))
+    #         print 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
+    #         print numpy.mean(c,axis=0)
+    # end_time = time.time()
+    # print 'Training ran for %.2f mins' % ((end_time - start_time) / 60.)
+    # r_train_fn, r_test_score, r_get_test_label, r_features, Layers = dbn1.build_finetune_functions(
+    #     datasets=r_datasets, batch_size=batch_size,
+    #     learning_rate=finetune_lr)
+    # epoch = 0
+    # while (epoch < training_epochs):
+    #     epoch = epoch + 1
+    #     c = []
+    #     for minibatch_index in xrange(n_train_batches):
+    #         minibatch_avg_cost1 = r_train_fn(minibatch_index)
+    #         c.append(minibatch_avg_cost1)
+    #     print 'fine-tuning epoch %d, cost ' % epoch, numpy.mean(c)
+    #
+    # predict_y, origin_y = r_get_test_label()
+    # predict_y = change2PrimaryC(predict_y)
+    # origin_y = change2PrimaryC(origin_y)
+    # print 'test results from label supervised DBN , presion, recall, F1, accuracy: '
+    # # print >> saveFile,'test results from dual supervised DBN, presion, recall, F1, accuracy: '
+    # resutl = evaluation(predict_y, origin_y)
+    # print >> saveFile,resutl[0],'\t',resutl[1],'\t',resutl[2],'\t',getAccuracy(predict_y, origin_y)
+    # print 'test results from label supervised DBN, presion, recall, F1, accuracy: '
+    # print evaluation(predict_y, origin_y),getAccuracy(predict_y, origin_y)
 
 
 
@@ -215,6 +215,6 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=200,
 #     print 'ld ', ld
 #     trainTdbn(dataIndex=2,lamda=ld)
 # trainTdbn(dataIndex=8)
-for ind in xrange(10):
-    print 'round ', ind
-    trainTdbn(dataIndex=ind)
+for ind in xrange(3):
+    print 'round ', ind+7
+    trainTdbn(dataIndex=ind+7)

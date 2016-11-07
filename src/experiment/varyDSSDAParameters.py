@@ -15,7 +15,8 @@ __author__ = 'Kangzhi Zhao'
 
 def test_SdA(finetune_lr=0.1, pretraining_epochs=100,
              pretrain_lr=0.1, training_epochs=200,
-             dataset='zzcxhg_20161007', fold_size = 1568, topicFile= 'lexicon2_20160928',batch_size=10, dataIndex=0,lamda=0.05):
+             dataset='mixed_5_20161007', fold_size = 116, topicFile= 'lexicon2_20160928',hidden_layers=[700, 700, 700], batch_size=10, dataIndex=0,lamda=0.05,
+             corruption_levels = [.05, .05, .05, .05, .05]):
     """
     Demonstrates how to train and test a stochastic denoising autoencoder.
 
@@ -45,7 +46,7 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=100,
     # datasets = load_data(dataset)
     filepath = '../../dataset/features/'+dataset
     topicPath = '../../dataset/features/'+topicFile
-    saveFile = file("../../output/result_sda.txt", 'a')
+    saveFile = file("../../output/result_sda_parameters.txt", 'a')
     print >> saveFile, 'round ', dataIndex, 'lamda ', lamda
     # train_set_x, train_set_y = datasets[0]
     # valid_set_x, valid_set_y = datasets[1]
@@ -74,14 +75,14 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=100,
     for y in train_y:
         topic_list_set.append(topic_x[y])
     topic_sets = theano.shared(numpy.asarray(topic_list_set,dtype=theano.config.floatX),borrow=True)
-    corruption_levels = [0.1, 0.1, 0.1]
+
 
     print('... building the DSSDA model')
     # construct the stacked denoising autoencoder class
     sda = SdA(
         numpy_rng=numpy_rng,
         n_ins=1188,
-        hidden_layers_sizes=[700, 700, 700],
+        hidden_layers_sizes=hidden_layers,
         n_outs=n_out,
         supervised_type=1
     )
@@ -154,7 +155,7 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=100,
     sda = SdA(
         numpy_rng=numpy_rng,
         n_ins=1188,
-        hidden_layers_sizes=[700, 700, 700],
+        hidden_layers_sizes=hidden_layers,
         n_outs=n_out,
         supervised_type=2
     )
@@ -226,7 +227,7 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=100,
     sda = SdA(
         numpy_rng=numpy_rng,
         n_ins=1188,
-        hidden_layers_sizes=[700, 700, 700],
+        hidden_layers_sizes=hidden_layers,
         n_outs=n_out
     )
     # end-snippet-3 start-snippet-4
@@ -247,8 +248,8 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=100,
             c = []
             for batch_index in range(n_train_batches):
                 c.append(pretraining_fns[i](index=batch_index,
-                         corruption=corruption_levels[i],
-                         lr=pretrain_lr))
+                                            corruption=corruption_levels[i],
+                                            lr=pretrain_lr))
             print('Pre-training layer %i, epoch %d, cost %f' % (i, epoch, numpy.mean(c)))
     end_time = timeit.default_timer()
     print(('The pretraining code for file ' +
@@ -296,11 +297,11 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=100,
 
 
 if __name__ == '__main__':
-    # lds = [1,0.5,0.1,0.05,0.01,0.001,0]
-    # for ld in lds:
-    #     print 'ld ', ld
-    #     test_SdA(dataIndex=0,lamda=ld)
+    hls = [[0, 0, 0],[0.001, 0.001, 0.001],[0.01, 0.01, 0.01],[0.05, 0.05, 0.05],[0.1, 0.1, 0.1],[0.5, 0.5, 0.5]]
+    for hl in hls:
+        print 'hl ', hl
+        test_SdA(corruption_levels=hl)
     # test_SdA(dataIndex=9)
-    for ind in range(10):
-        print 'index @'+str(ind)
-        test_SdA(dataIndex=ind)
+    # for ind in range(2):
+    #     print 'index @'+str(ind+8)
+    #     test_SdA(dataIndex=ind+8)
