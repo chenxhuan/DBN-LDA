@@ -214,7 +214,7 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=200,
 # for ld in lds:
 #     print 'ld ', ld
 #     trainTdbn(dataIndex=2,lamda=ld)
-# trainTdbn(dataIndex=8)
-for ind in xrange(3):
-    print 'round ', ind+7
-    trainTdbn(dataIndex=ind+7)
+trainTdbn(dataIndex=0)
+# for ind in xrange(3):
+#     print 'round ', ind+7
+#     trainTdbn(dataIndex=ind+7)

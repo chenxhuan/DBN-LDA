@@ -15,7 +15,7 @@ __author__ = 'Kangzhi Zhao'
 
 def test_SdA(finetune_lr=0.1, pretraining_epochs=100,
              pretrain_lr=0.1, training_epochs=200,
-             dataset='zzcxhg_20161007', fold_size = 1568, topicFile= 'lexicon2_20160928',batch_size=10, dataIndex=0,lamda=0.05):
+             dataset='mixed_5_20161007', fold_size = 116, topicFile= 'lexicon2_20160928',batch_size=10, dataIndex=0,lamda=0.05):
     """
     Demonstrates how to train and test a stochastic denoising autoencoder.
 

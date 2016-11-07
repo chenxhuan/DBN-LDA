@@ -15,8 +15,8 @@ __author__ = 'Kangzhi Zhao'
 
 def test_SdA(finetune_lr=0.1, pretraining_epochs=100,
              pretrain_lr=0.1, training_epochs=200,
-             dataset='mixed_5_20161007', fold_size = 116, topicFile= 'lexicon2_20160928',hidden_layers=[700, 700, 700], batch_size=10, dataIndex=0,lamda=0.05,
-             corruption_levels = [.05, .05, .05, .05, .05]):
+             dataset='mixed_5_20161007_doc2vec', fold_size = 116, topicFile= 'lexicon2_20160928',hidden_layers=[700, 700, 700], batch_size=10, dataIndex=0,lamda=0.05,
+             corruption_levels = [0.1, 0.1, 0.1]):
     """
     Demonstrates how to train and test a stochastic denoising autoencoder.
 
@@ -297,11 +297,11 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=100,
 
 
 if __name__ == '__main__':
-    hls = [[0, 0, 0],[0.001, 0.001, 0.001],[0.01, 0.01, 0.01],[0.05, 0.05, 0.05],[0.1, 0.1, 0.1],[0.5, 0.5, 0.5]]
-    for hl in hls:
-        print 'hl ', hl
-        test_SdA(corruption_levels=hl)
-    # test_SdA(dataIndex=9)
+    # hls = [[0, 0, 0],[0.001, 0.001, 0.001],[0.01, 0.01, 0.01],[0.05, 0.05, 0.05],[0.1, 0.1, 0.1],[0.5, 0.5, 0.5]]
+    # for hl in hls:
+    #     print 'hl ', hl
+    #     test_SdA(corruption_levels=hl)
+    test_SdA()
     # for ind in range(2):
     #     print 'index @'+str(ind+8)
     #     test_SdA(dataIndex=ind+8)
