@@ -42,7 +42,7 @@ import theano
 import theano.tensor as T
 from theano.tensor.shared_randomstreams import RandomStreams
 
-from src.preprocess.preprocess_data import LogisticRegression, HiddenLayer
+from preprocess.preprocess_data import LogisticRegression, HiddenLayer
 from dA import dA
 
 

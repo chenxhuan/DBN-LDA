@@ -2,12 +2,11 @@
 # -*- coding: utf-8 -*-
 import os,numpy,sys,time
 import timeit
-
-from src.model.SdA import SdA
-from src.experiment.evaluation import evaluation
-from src.preprocess.preprocess_data import *
-
 sys.path.append("..")
+from model.SdA import SdA
+from experiment.evaluation import evaluation
+from preprocess.preprocess_data import *
+
 import theano.tensor as T
 
 __doc__ = 'CNN as the benchmark'

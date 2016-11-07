@@ -44,7 +44,7 @@ from theano.tensor.shared_randomstreams import RandomStreams
 
 # from logistic_sgd import load_data
 # from utils import tile_raster_images
-from src.preprocess.preprocess_data import LogisticRegression
+from preprocess.preprocess_data import LogisticRegression
 
 
 class dA(object):
