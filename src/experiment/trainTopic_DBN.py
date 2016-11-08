@@ -20,12 +20,12 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=200,
     
     start_time = time.time()
     # filepath = "../../dataset/features/annotation1000_20160927"
-    filepath = "../../dataset/features/zzcxhg_20161007"
+    filepath = "../../dataset/features/annotation1000_20160927_doc2vec"
     saveFile = file("../../output/result2.txt",'a')
     print >> saveFile, 'round ', dataIndex, 'lamda ', lamda
     start_index = 0
     end_index = 116
-    fold_size = 1568
+    fold_size = 100
     (train_set_x,train_set_y,train_x,train_y),(test_set_x,test_set_y,test_x,test_y) = Rdata_load(filepath,
                                     dataIndex*fold_size,(dataIndex+1)*fold_size)
                                     # start_index,end_index)
@@ -115,40 +115,40 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=200,
 
 
 
-    print '..... building the DBN model'
-    rDBN = DBN(n_ins=1188,hidden_layers_sizes=[594,594,594],n_outs=n_out)
-
-    pretrainingR_fns,Layers = rDBN.pretraining_function(train_set_x=train_set_x, batch_size=batch_size, k=k)
-
-    for i in xrange(rDBN.n_layers):
-        for epoch in xrange(pretraining_epochs if i is not 1 else 2*pretraining_epochs):
-            c = []
-            for batch_index in xrange(n_train_batches):
-                c.append(pretrainingR_fns[i](index=batch_index,lr=pretrain_lr))
-            print 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
-            print numpy.mean(c,axis=0)
-    end_time = time.time()
-    print 'Training ran for %.2f mins' % ((end_time - start_time) / 60.)
-    r_train_fn, r_test_score, r_get_test_label, r_features, Layers = rDBN.build_finetune_functions(
-                datasets=r_datasets, batch_size=batch_size,
-                learning_rate=finetune_lr)
-    epoch = 0
-    while (epoch < training_epochs):
-        epoch = epoch + 1
-        c = []
-        for minibatch_index in xrange(n_train_batches):
-            minibatch_avg_cost1 = r_train_fn(minibatch_index)
-            c.append(minibatch_avg_cost1)
-        print 'fine-tuning epoch %d, cost ' % epoch,numpy.mean(c)
-    predict_y, origin_y = r_get_test_label()
-    predict_y = change2PrimaryC(predict_y)
-    origin_y = change2PrimaryC(origin_y)
-    print 'second results from  DBN , presion, recall, F1, accuracy: '
-    # print >> saveFile,'first results from right DBN , presion, recall, F1, accuracy: '
-    resutl = evaluation(predict_y, origin_y)
-    print >> saveFile,resutl[0],'\t',resutl[1],'\t',resutl[2],'\t',getAccuracy(predict_y, origin_y)
-    print 'second results from  DBN , presion, recall, F1, accuracy: '
-    print evaluation(predict_y, origin_y),getAccuracy(predict_y, origin_y)
+    # print '..... building the DBN model'
+    # rDBN = DBN(n_ins=1188,hidden_layers_sizes=[594,594,594],n_outs=n_out)
+    #
+    # pretrainingR_fns,Layers = rDBN.pretraining_function(train_set_x=train_set_x, batch_size=batch_size, k=k)
+    #
+    # for i in xrange(rDBN.n_layers):
+    #     for epoch in xrange(pretraining_epochs if i is not 1 else 2*pretraining_epochs):
+    #         c = []
+    #         for batch_index in xrange(n_train_batches):
+    #             c.append(pretrainingR_fns[i](index=batch_index,lr=pretrain_lr))
+    #         print 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
+    #         print numpy.mean(c,axis=0)
+    # end_time = time.time()
+    # print 'Training ran for %.2f mins' % ((end_time - start_time) / 60.)
+    # r_train_fn, r_test_score, r_get_test_label, r_features, Layers = rDBN.build_finetune_functions(
+    #             datasets=r_datasets, batch_size=batch_size,
+    #             learning_rate=finetune_lr)
+    # epoch = 0
+    # while (epoch < training_epochs):
+    #     epoch = epoch + 1
+    #     c = []
+    #     for minibatch_index in xrange(n_train_batches):
+    #         minibatch_avg_cost1 = r_train_fn(minibatch_index)
+    #         c.append(minibatch_avg_cost1)
+    #     print 'fine-tuning epoch %d, cost ' % epoch,numpy.mean(c)
+    # predict_y, origin_y = r_get_test_label()
+    # predict_y = change2PrimaryC(predict_y)
+    # origin_y = change2PrimaryC(origin_y)
+    # print 'second results from  DBN , presion, recall, F1, accuracy: '
+    # # print >> saveFile,'first results from right DBN , presion, recall, F1, accuracy: '
+    # resutl = evaluation(predict_y, origin_y)
+    # print >> saveFile,resutl[0],'\t',resutl[1],'\t',resutl[2],'\t',getAccuracy(predict_y, origin_y)
+    # print 'second results from  DBN , presion, recall, F1, accuracy: '
+    # print evaluation(predict_y, origin_y),getAccuracy(predict_y, origin_y)
 
 
     print 'third results from GNaiveBayes , presion, recall, F1, accuracy: '

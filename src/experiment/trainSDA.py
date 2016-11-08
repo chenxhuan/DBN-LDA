@@ -14,7 +14,7 @@ __author__ = 'Kangzhi Zhao'
 
 def test_SdA(finetune_lr=0.1, pretraining_epochs=100,
              pretrain_lr=0.1, training_epochs=200,
-             dataset='mixed_5_20161007', fold_size = 116, topicFile= 'lexicon2_20160928',batch_size=10, dataIndex=0,lamda=0.05):
+             dataset='annotation1000_20160927', fold_size = 100, topicFile= 'lexicon2_20160928',batch_size=10, dataIndex=0,lamda=0.05):
     """
     Demonstrates how to train and test a stochastic denoising autoencoder.
 
@@ -37,7 +37,7 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=100,
     :param dataset: path the the pickled dataset
 
     """
-    start_time = timeit.default_timer()
+    sstart_time = timeit.default_timer()
     # numpy random generator
     numpy_rng = numpy.random.RandomState(89677)
     n_out = 26
@@ -195,7 +195,6 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=100,
         learning_rate=finetune_lr
     )
     print('... finetunning the model')
-    start_time = timeit.default_timer()
     # done_looping = False
     epoch = 0
 
@@ -218,7 +217,7 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=100,
     print 'results from LSSDA , presion, recall, F1, accuracy: '
     print ev, acc
     end_time = timeit.default_timer()
-    print 'Finish all using  %.2f mins' % ((end_time - start_time) / 60.)
+    print 'Finish all using  %.2f mins' % ((end_time - sstart_time) / 60.)
 
     print('... building the SDA model')
     # construct the stacked denoising autoencoder class
@@ -288,7 +287,7 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=100,
     print 'results from sda , presion, recall, F1, accuracy: '
     print ev, acc
     end_time = timeit.default_timer()
-    print 'Finish all using  %.2f mins' % ((end_time - start_time) / 60.)
+    print 'Finish all using  %.2f mins' % ((end_time - sstart_time) / 60.)
     print('Optimization complete.')
     print >>saveFile,'------------------------------------------------------------------------------'
 
