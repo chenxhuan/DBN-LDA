@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 import os,numpy,sys,time
 import timeit
-
+sys.path.append("..")
 from src.model.SdA import SdA
 from src.experiment.evaluation import evaluation
 from src.preprocess.preprocess_data import *
 
-sys.path.append("..")
+
 import theano.tensor as T
 
 __doc__ = 'CNN as the benchmark'
@@ -15,8 +15,9 @@ __author__ = 'Kangzhi Zhao'
 
 def test_SdA(finetune_lr=0.1, pretraining_epochs=100,
              pretrain_lr=0.1, training_epochs=200,
-             dataset='mixed_5_20161007_doc2vec', fold_size = 116, topicFile= 'lexicon2_20160928',hidden_layers=[700, 700, 700], batch_size=10, dataIndex=0,lamda=0.05,
-             corruption_levels = [0.1, 0.1, 0.1]):
+             dataset='annotation1000_20160927', fold_size = 100, topicFile= 'lexicon2_20160928',hidden_layers=[594, 594, 594],
+             n_ins= 1188, batch_size=10, dataIndex=0,lamda=0.05,
+             corruption_levels = [0.05, 0.05, 0.05, 0.05,0.05]):
     """
     Demonstrates how to train and test a stochastic denoising autoencoder.
 
@@ -39,7 +40,7 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=100,
     :param dataset: path the the pickled dataset
 
     """
-    start_time = timeit.default_timer()
+    sstart_time = timeit.default_timer()
     # numpy random generator
     numpy_rng = numpy.random.RandomState(89677)
     n_out = 26
@@ -81,7 +82,7 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=100,
     # construct the stacked denoising autoencoder class
     sda = SdA(
         numpy_rng=numpy_rng,
-        n_ins=1188,
+        n_ins=n_ins,
         hidden_layers_sizes=hidden_layers,
         n_outs=n_out,
         supervised_type=1
@@ -154,7 +155,7 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=100,
     # construct the stacked denoising autoencoder class
     sda = SdA(
         numpy_rng=numpy_rng,
-        n_ins=1188,
+        n_ins=n_ins,
         hidden_layers_sizes=hidden_layers,
         n_outs=n_out,
         supervised_type=2
@@ -226,7 +227,7 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=100,
     # construct the stacked denoising autoencoder class
     sda = SdA(
         numpy_rng=numpy_rng,
-        n_ins=1188,
+        n_ins=n_ins,
         hidden_layers_sizes=hidden_layers,
         n_outs=n_out
     )
@@ -290,18 +291,41 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=100,
     print 'results from sda , presion, recall, F1, accuracy: '
     print ev, acc
     end_time = timeit.default_timer()
-    print 'Finish all using  %.2f mins' % ((end_time - start_time) / 60.)
+    print 'Finish all using  %.2f mins' % ((end_time - sstart_time) / 60.)
     print('Optimization complete.')
     print >>saveFile,'------------------------------------------------------------------------------'
 
 
 
 if __name__ == '__main__':
-    # hls = [[0, 0, 0],[0.001, 0.001, 0.001],[0.01, 0.01, 0.01],[0.05, 0.05, 0.05],[0.1, 0.1, 0.1],[0.5, 0.5, 0.5]]
+    # lds = [1,0.5,0.1,0.05,0.01,0.001,0]
+    # for ld in lds:
+    #     print 'ld ', ld
+    #     test_SdA(dataIndex=9,lamda=ld)
+
+    # test 4  corruption level
+    # cls = [[0, 0, 0],[0.001, 0.001, 0.001],[0.01, 0.01, 0.01],[0.05, 0.05, 0.05],[0.1, 0.1, 0.1]]
+    # for cl in cls:
+    #     print 'cl ', cl
+    #     test_SdA(corruption_levels=cl,dataIndex=9)
+
+    # hls = [[100, 100, 100],[200, 200, 200],[300, 300, 300],[400, 400, 400],[500, 500, 500],[600, 600, 600],[700, 700, 700],[800, 800, 800],[900, 900, 900],[1000, 1000, 1000],[1100, 1100, 1100]]
     # for hl in hls:
     #     print 'hl ', hl
-    #     test_SdA(corruption_levels=hl)
-    test_SdA()
+    #     test_SdA(hidden_layers=hl,dataIndex=9)
+
+    # hls = [[594],[594, 594],[594, 594, 594],[594, 594, 594, 594],[594, 594, 594, 594, 594]]
+    # for hl in hls:
+    #     print 'hl ', hl
+    #     test_SdA(hidden_layers=hl,dataIndex=9)
+
+    #  test different vectors
+    # test_SdA(dataset='annotation1000_20160927_doc2vec', n_ins=1188, topicFile='lexicon2_20160928_doc2vec',dataIndex=9)
+    test_SdA(dataset='annotation1000_20160927bow', n_ins=1065,topicFile= 'lexicon2_20160928bow')
+    test_SdA(dataset='annotation1000_20160927tfidf', topicFile= 'lexicon2_20160928tfidf')
+    # test_SdA(dataset='mixed_5_20161007tfidf', topicFile= 'lexicon2_20160928tfidf')
+    # test_SdA()
+
     # for ind in range(2):
     #     print 'index @'+str(ind+8)
     #     test_SdA(dataIndex=ind+8)

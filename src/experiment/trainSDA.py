@@ -14,7 +14,8 @@ __author__ = 'Kangzhi Zhao'
 
 def test_SdA(finetune_lr=0.1, pretraining_epochs=100,
              pretrain_lr=0.1, training_epochs=200,
-             dataset='annotation1000_20160927', fold_size = 100, topicFile= 'lexicon2_20160928',batch_size=10, dataIndex=0,lamda=0.05):
+             dataset='zzcxhg_20161007', fold_size = 1562, topicFile= 'lexicon2_20160928',batch_size=10, dataIndex=0,lamda=0.1
+             ,corruption_levels = [0.05, 0.05, 0.05], hidden_layers=[594, 594, 594]):
     """
     Demonstrates how to train and test a stochastic denoising autoencoder.
 
@@ -73,14 +74,14 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=100,
     for y in train_y:
         topic_list_set.append(topic_x[y])
     topic_sets = theano.shared(numpy.asarray(topic_list_set,dtype=theano.config.floatX),borrow=True)
-    corruption_levels = [0.1, 0.1, 0.1]
+
 
     print('... building the DSSDA model')
     # construct the stacked denoising autoencoder class
     sda = SdA(
         numpy_rng=numpy_rng,
         n_ins=1188,
-        hidden_layers_sizes=[700, 700, 700],
+        hidden_layers_sizes=hidden_layers,
         n_outs=n_out,
         supervised_type=1
     )
@@ -153,7 +154,7 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=100,
     sda = SdA(
         numpy_rng=numpy_rng,
         n_ins=1188,
-        hidden_layers_sizes=[700, 700, 700],
+        hidden_layers_sizes=hidden_layers,
         n_outs=n_out,
         supervised_type=2
     )
@@ -224,7 +225,7 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=100,
     sda = SdA(
         numpy_rng=numpy_rng,
         n_ins=1188,
-        hidden_layers_sizes=[700, 700, 700],
+        hidden_layers_sizes=hidden_layers,
         n_outs=n_out
     )
     # end-snippet-3 start-snippet-4
@@ -299,6 +300,6 @@ if __name__ == '__main__':
     #     print 'ld ', ld
     #     test_SdA(dataIndex=0,lamda=ld)
     # test_SdA(dataIndex=9)
-    for ind in range(10):
-        print 'index @'+str(ind)
-        test_SdA(dataIndex=ind)
+    for ind in range(5):
+        print 'index @'+str(ind+5)
+        test_SdA(dataIndex=ind+5)

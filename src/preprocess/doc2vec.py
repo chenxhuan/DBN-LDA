@@ -44,11 +44,11 @@ def get_dataset(inputFile):
     return texts, lables
 
 ##对数据进行训练
-def train(texts,size = 400,epoch_num=10):
+def train(texts,size = 300,epoch_num=10):
     #实例DM和DBOW模型
     # model_dm = gensim.models.Doc2Vec(min_count=1, window=15, size=size, sample=1e-4, negative=5, workers=25)
     # model_dbow = gensim.models.Doc2Vec(min_count=1, window=10, size=size, sample=1e-3, negative=5, dm=0, workers=25)
-    model_dm = gensim.models.Doc2Vec(workers=25)
+    model_dm = gensim.models.Doc2Vec(workers=25, size=size)
 
     #使用所有的数据建立词典
     model_dm.build_vocab(texts)
@@ -103,9 +103,9 @@ def writefile(filepath, labels, features):
 
 
 if __name__ == "__main__":
-    # size, epoch_num = 1188/2, 10
-    # files = ['annotation1000_20160927', 'mixed_5_20161007', 'tnbz_20161007', 'zzcxhg_20161007']
-    files = ['lexicon2_20160928']
+    size = 1188
+    # files = ['annotation1000_20160927', 'mixed_5_20161007', 'tnbz_20161007', 'zzcxhg_20161007','lexicon2_20160928']
+    files = ['annotation1000_20160927']
     for filename in files:
         # filename = 'test'
         print "now applying doc2vec "+filename
@@ -119,11 +119,11 @@ if __name__ == "__main__":
         # print texts
         #对数据进行训练，获得模型
         print "training..."
-        model_dm = train(texts, epoch_num=50)
+        model_dm = train(texts, epoch_num=50, size=size)
         #从模型中抽取文档相应的向量
         print "training finished"
         # vecs = get_vectors(model_dm)
-        vecs = getVecs(model_dm, texts)
+        vecs = getVecs(model_dm, texts, size=size)
         writefile(saveFile, labels, vecs)
         end = time.time()
         print filename+" success with %ds" %(end-start)

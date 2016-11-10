@@ -163,7 +163,7 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=200,
     test_y = change2PrimaryC(test_y)
     resutl = evaluation(nbResult, test_y)
     print >> saveFile,resutl[0],'\t',resutl[1],'\t',resutl[2],'\t',getAccuracy(nbResult, test_y)
-
+    print resutl[0],'\t',resutl[1],'\t',resutl[2],'\t',getAccuracy(nbResult, test_y)
     print 'fourth results from SVM, presion,recall,F1,accuracy'
     # print >> saveFile,'fourth results from SVM, presion,recall,F1,accuracy'
 
@@ -186,6 +186,7 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=200,
     testY = change2PrimaryC(testY)
     resutl = evaluation(p_label, testY)
     print >> saveFile,resutl[0],'\t',resutl[1],'\t',resutl[2],'\t',getAccuracy(p_label, testY)
+    print resutl[0],'\t',resutl[1],'\t',resutl[2],'\t',getAccuracy(p_label, testY)
 
     print 'fifth results from Perception, presion,recall,F1,accuracy'
     # print >> saveFile,'fifth results from Perception, presion,recall,F1,accuracy'
@@ -195,6 +196,7 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=200,
     perceptronResult = change2PrimaryC(perceptronResult)
     resutl = evaluation(perceptronResult, test_y)
     print >> saveFile,resutl[0],'\t',resutl[1],'\t',resutl[2],'\t',getAccuracy(perceptronResult, test_y)
+    print resutl[0],'\t',resutl[1],'\t',resutl[2],'\t',getAccuracy(perceptronResult, test_y)
 
     print 'sixth results from Decision Trees , presion, recall, F1, accuracy: '
     # print >> saveFile,'sixth results from Decision Trees, presion,recall,F1,accuracy'
@@ -205,6 +207,7 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=200,
     TreeResult = change2PrimaryC(TreeResult)
     resutl = evaluation(TreeResult, test_y)
     print >> saveFile,resutl[0],'\t',resutl[1],'\t',resutl[2],'\t',getAccuracy(TreeResult, test_y)
+    print resutl[0],'\t',resutl[1],'\t',resutl[2],'\t',getAccuracy(TreeResult, test_y)
     end_time = time.time()
     print >> saveFile,'Finish all using  %.2f mins' % ((end_time - start_time) / 60.)
     print 'Finish all using  %.2f mins' % ((end_time - start_time) / 60.)
@@ -214,7 +217,7 @@ def trainTdbn(finetune_lr=0.1,pretraining_epochs=200,
 # for ld in lds:
 #     print 'ld ', ld
 #     trainTdbn(dataIndex=2,lamda=ld)
-trainTdbn(dataIndex=0)
+trainTdbn(dataIndex=9)
 # for ind in xrange(3):
 #     print 'round ', ind+7
 #     trainTdbn(dataIndex=ind+7)

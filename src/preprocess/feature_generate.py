@@ -55,9 +55,9 @@ def process(inputFile, saveFile, topN):
     wordList = sorted(wordMap.iteritems(), key=lambda asd:asd[1], reverse=True)[:topN]
     print len(wordList), len(word)
     for i in xrange(len(binaryFL)):
-        tmpStr = binaryFL[i]
+        tmpStr = binaryFL[i].split('\t')[0]+'\t'
+        # tmpStr = binaryFL[i]
         for k,v in wordList:
-            # tmpStr += weight[i][k] + ' '
             tmpStr += str(weight[i][k]) + ' '
         tmpStr = tmpStr.strip()+'\n'
         output.write(tmpStr)
@@ -70,9 +70,9 @@ if __name__ == "__main__":
     if len(sys.argv) != 3:
         start = time.time()
         # date = time.strftime('%Y%m%d',time.localtime(time.time()))
-        inputFile = '../../dataset/wordSegmentation/zzcxhg_20161007'
-        saveFile = '../../dataset/features/'+inputFile.split('/')[-1].split('.txt')[0]
-        process(inputFile, saveFile,123)
+        inputFile = '../../dataset/wordSegmentation/annotation1000_20160927'
+        saveFile = '../../dataset/features/'+inputFile.split('/')[-1].split('.txt')[0]    +'tfidf'
+        process(inputFile, saveFile,1188)
         end = time.time()
         print 'finish :', end - start, 's'
     else:
