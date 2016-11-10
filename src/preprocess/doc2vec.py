@@ -10,7 +10,7 @@ import sys
 import numpy as np
 import gensim
 import time
-import random
+from random import shuffle
 
 from gensim.models.doc2vec import Doc2Vec, LabeledSentence
 
@@ -46,39 +46,47 @@ def get_dataset(inputFile):
 ##对数据进行训练
 def train(texts,size = 400,epoch_num=10):
     #实例DM和DBOW模型
-    model_dm = gensim.models.Doc2Vec(min_count=1, window=10, size=size, sample=1e-3, negative=5, workers=25)
-    model_dbow = gensim.models.Doc2Vec(min_count=1, window=10, size=size, sample=1e-3, negative=5, dm=0, workers=25)
+    # model_dm = gensim.models.Doc2Vec(min_count=1, window=15, size=size, sample=1e-4, negative=5, workers=25)
+    # model_dbow = gensim.models.Doc2Vec(min_count=1, window=10, size=size, sample=1e-3, negative=5, dm=0, workers=25)
+    model_dm = gensim.models.Doc2Vec(workers=25)
 
     #使用所有的数据建立词典
     model_dm.build_vocab(texts)
-    model_dbow.build_vocab(texts)
+    # model_dbow.build_vocab(texts)
 
     #进行多次重复训练，每一次都需要对训练数据重新打乱，以提高精度
+    temp = texts[:]
     # print texts
     # all_reviews = np.asarray(texts, dtype=object)
     # all_reviews = texts
     for epoch in range(epoch_num):
+        print "epoch %d in epoch_num %d" % (epoch, epoch_num)
         # perm = np.random.permutation(all_reviews.shape[0])
-        random.shuffle(texts)
-        model_dm.train(texts)
-        model_dbow.train(texts)
+        shuffle(temp)
+        model_dm.train(temp)
+        # model_dbow.train(texts)
 
-    return model_dm, model_dbow
+    # return model_dm, model_dbow
+    return model_dm
 
 
 ##读取向量
-def getVecs(model, corpus, size):
-    vecs = [np.array(model.docvecs[z.tags[0]]).reshape((1, size)) for z in corpus]
+def getVecs(model, corpus, size=300):
+    vecs = []
+    for z in corpus:
+        print z.tags
+        vecs.append(np.array(model.docvecs[z.tags[0]]).reshape((1, size)))
     return np.concatenate(vecs)
 
 
 ##将训练完成的数据转换为vectors
-def get_vectors(model_dm, model_dbow):
+def get_vectors(model_dm):
     #获取训练数据集的文档向量
-    train_vecs_dm = getVecs(model_dm, texts, size)
-    train_vecs_dbow = getVecs(model_dbow, texts, size)
-    train_vecs = np.hstack((train_vecs_dm, train_vecs_dbow))
-    return train_vecs
+    train_vecs_dm = getVecs(model_dm, texts, size=300)
+    # train_vecs_dbow = getVecs(model_dbow, texts, size)
+    # train_vecs = np.hstack((train_vecs_dm, train_vecs_dbow))
+    # return train_vecs
+    return train_vecs_dm
 
 
 def writefile(filepath, labels, features):
@@ -95,11 +103,12 @@ def writefile(filepath, labels, features):
 
 
 if __name__ == "__main__":
-    size, epoch_num = 1188/2, 10
-    files = ['annotation1000_20160927', 'mixed_5_20161007', 'tnbz_20161007', 'zzcxhg_20161007']
+    # size, epoch_num = 1188/2, 10
+    # files = ['annotation1000_20160927', 'mixed_5_20161007', 'tnbz_20161007', 'zzcxhg_20161007']
+    files = ['lexicon2_20160928']
     for filename in files:
         # filename = 'test'
-        print "now doing doc2vec "+filename
+        print "now applying doc2vec "+filename
         start = time.time()
         #设置向量维度和训练次数
         #In the paper, the author generate the doc vector by concatenate two model vectors
@@ -110,10 +119,11 @@ if __name__ == "__main__":
         # print texts
         #对数据进行训练，获得模型
         print "training..."
-        model_dm, model_dbow = train(texts, size, epoch_num)
+        model_dm = train(texts, epoch_num=50)
         #从模型中抽取文档相应的向量
         print "training finished"
-        vecs = get_vectors(model_dm, model_dbow)
+        # vecs = get_vectors(model_dm)
+        vecs = getVecs(model_dm, texts)
         writefile(saveFile, labels, vecs)
         end = time.time()
         print filename+" success with %ds" %(end-start)
