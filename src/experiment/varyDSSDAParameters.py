@@ -15,7 +15,7 @@ __author__ = 'Kangzhi Zhao'
 
 def test_SdA(finetune_lr=0.1, pretraining_epochs=100,
              pretrain_lr=0.1, training_epochs=200,
-             dataset='annotation1000_20160927', fold_size = 100, topicFile= 'lexicon2_20160928',hidden_layers=[594, 594, 594],
+             dataset='tnbz_20161007', fold_size = 100, topicFile= 'lexicon2_20160928',hidden_layers=[594, 594, 594],
              n_ins= 1188, batch_size=10, dataIndex=0,lamda=0.05,
              corruption_levels = [0.05, 0.05, 0.05, 0.05,0.05]):
     """
@@ -139,11 +139,13 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=100,
         print 'fine-tuning epoch %d, cost ' % epoch, numpy.mean(c)
     end_time = timeit.default_timer()
     predict_y, origin_y = test_labels()
+    # print >> saveFile, predict_y,'\n',origin_y
     predict_y = change2PrimaryC(predict_y)
     origin_y = change2PrimaryC(origin_y)
     ev = evaluation(predict_y, origin_y)
     acc = getAccuracy(predict_y, origin_y)
     # print 'results from sda , presion, recall, F1, accuracy: '
+
     print >> saveFile,ev[0],'\t',ev[1],'\t',ev[2],'\t',acc
     print 'results from DSSDA , presion, recall, F1, accuracy: '
     print ev, acc
@@ -320,14 +322,14 @@ if __name__ == '__main__':
     #     test_SdA(hidden_layers=hl,dataIndex=9)
 
     #  test different vectors
-    for ind in range(10):
-        print 'index @'+str(ind)
-    # test_SdA(dataset='annotation1000_20160927_doc2vec', n_ins=1188, topicFile='lexicon2_20160928_doc2vec',dataIndex=9)
-        test_SdA(dataset='annotation1000_20160927bow', n_ins=1065,topicFile= 'lexicon2_20160928bow',dataIndex=ind)
-        test_SdA(dataset='annotation1000_20160927tfidf', topicFile= 'lexicon2_20160928tfidf',dataIndex=ind)
-    # test_SdA(dataset='mixed_5_20161007tfidf', topicFile= 'lexicon2_20160928tfidf')
-        test_SdA(dataIndex=ind)
-
+    # for ind in range(10):
+    #     print 'index @'+str(ind)
+    # # test_SdA(dataset='annotation1000_20160927_doc2vec', n_ins=1188, topicFile='lexicon2_20160928_doc2vec',dataIndex=9)
+    #     test_SdA(dataset='annotation1000_20160927bow', n_ins=1065,topicFile= 'lexicon2_20160928bow',dataIndex=ind)
+    #     test_SdA(dataset='annotation1000_20160927tfidf', topicFile= 'lexicon2_20160928tfidf',dataIndex=ind)
+    # # test_SdA(dataset='mixed_5_20161007tfidf', topicFile= 'lexicon2_20160928tfidf')
+    #     test_SdA(dataIndex=ind)
+    test_SdA(dataIndex=0)
     # for ind in range(2):
     #     print 'index @'+str(ind+8)
     #     test_SdA(dataIndex=ind+8)
